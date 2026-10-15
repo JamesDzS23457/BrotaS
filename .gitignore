@@ -25,6 +25,7 @@ dist/
 AGENTS.md
 MEMORY.md
 BITACORA.docx
+_bitacora/
 
 # Varios
 *.log
