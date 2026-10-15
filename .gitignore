@@ -21,5 +21,9 @@ dist/
 .idea/
 .DS_Store
 
+# Archivos solo para el asistente (no van al repositorio)
+AGENTS.md
+MEMORY.md
+
 # Varios
 *.log
