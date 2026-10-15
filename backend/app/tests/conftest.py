@@ -1,0 +1,94 @@
+"""Configuración de las pruebas: base de datos de prueba y cliente HTTP.
+
+Cada prueba corre dentro de una transacción que se revierte al final, así que la
+base de datos de prueba queda limpia siempre.
+"""
+import os
+import sys
+from collections.abc import Generator
+from pathlib import Path
+
+# Asegura que el paquete 'app' sea importable al correr pytest desde backend/
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine, text  # noqa: E402
+from sqlalchemy.engine import make_url  # noqa: E402
+from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
+
+from app.core.database import Base, get_db  # noqa: E402
+from app.main import app  # noqa: E402  (importa todos los modelos)
+
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    "postgresql+psycopg://brotas:brotas@localhost:5432/brotas_test",
+)
+
+_url = make_url(TEST_DATABASE_URL)
+engine = create_engine(TEST_DATABASE_URL)
+TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+
+
+def _crear_base_si_falta() -> None:
+    """Crea la base de datos de prueba si todavía no existe."""
+    admin = create_engine(_url.set(database="postgres"), isolation_level="AUTOCOMMIT")
+    with admin.connect() as conn:
+        existe = conn.execute(
+            text("select 1 from pg_database where datname = :nombre"),
+            {"nombre": _url.database},
+        ).scalar()
+        if not existe:
+            conn.execute(text(f'create database "{_url.database}"'))
+    admin.dispose()
+
+
+def _limpiar_esquema() -> None:
+    """Borra las tablas y los tipos enum del esquema de prueba."""
+    Base.metadata.drop_all(bind=engine)
+    with engine.begin() as conn:
+        conn.execute(text("drop type if exists tenant_status cascade"))
+        conn.execute(text("drop type if exists user_role cascade"))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _preparar_base() -> Generator[None, None, None]:
+    """Prepara (una sola vez) el esquema de la base de datos de prueba."""
+    _crear_base_si_falta()
+    _limpiar_esquema()
+    Base.metadata.create_all(bind=engine)
+    yield
+    _limpiar_esquema()
+    engine.dispose()
+
+
+@pytest.fixture
+def db() -> Generator[Session, None, None]:
+    """Sesión de prueba; todo lo que se haga se revierte al terminar."""
+    connection = engine.connect()
+    transaccion = connection.begin()
+    session = Session(
+        bind=connection,
+        autoflush=False,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
+    try:
+        yield session
+    finally:
+        session.close()
+        transaccion.rollback()
+        connection.close()
+
+
+@pytest.fixture
+def client(db: Session) -> Generator[TestClient, None, None]:
+    """Cliente HTTP que usa la sesión de prueba en los endpoints."""
+
+    def _override_db() -> Generator[Session, None, None]:
+        yield db
+
+    app.dependency_overrides[get_db] = _override_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()

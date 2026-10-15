@@ -76,6 +76,17 @@ npm run build                   # build de producción
 npm run lint                    # lint
 ```
 
+## Pruebas
+
+```bash
+cd backend
+pytest
+```
+
+Las pruebas usan una base de datos aparte (`brotas_test`, se crea automáticamente) y cada
+prueba corre en una **transacción que se revierte** al terminar, así que nunca tocan tus datos
+de desarrollo. La URL se puede cambiar con la variable de entorno `TEST_DATABASE_URL`.
+
 ## Estado del proyecto
 
 Fase 0 (fundaciones) en curso:
@@ -83,4 +94,5 @@ Fase 0 (fundaciones) en curso:
 - [x] **0.1** Estructura del backend (FastAPI, core, módulos, shared).
 - [x] **0.2** Modelos y migración inicial (tenants, users, products, stock, sales).
 - [x] **0.3** Autenticación: `POST /auth/login` con JWT, bcrypt (passlib) y `create_superadmin.py`.
+- [x] **0.4** Guardia de tenant: `get_tenant_id` (403 si el local está suspendido) y endpoint de ejemplo `GET /products`; pruebas de aislamiento entre locales.
 - [ ] Frontend.
