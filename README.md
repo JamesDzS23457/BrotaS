@@ -87,6 +87,11 @@ Las pruebas usan una base de datos aparte (`brotas_test`, se crea automáticamen
 prueba corre en una **transacción que se revierte** al terminar, así que nunca tocan tus datos
 de desarrollo. La URL se puede cambiar con la variable de entorno `TEST_DATABASE_URL`.
 
+> **Nota sobre la shell.** Los ejemplos están en bash/zsh. Si usas **fish**, activa el entorno
+> con `source .venv/bin/activate.fish` (no `activate`) o llama directo a los ejecutables:
+> `.venv/bin/pytest`, `.venv/bin/uvicorn app.main:app --reload`. Recuerda que fish **no acepta
+> `&&`**: usa `;` o `and`.
+
 ## Estado del proyecto
 
 Fase 0 (fundaciones) en curso:
