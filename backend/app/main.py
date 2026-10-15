@@ -3,6 +3,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
+
+# Importar todos los modelos para que SQLAlchemy registre las tablas (necesario por las FK)
+from app.modules.auth import models as auth_models  # noqa: F401
+from app.modules.products import models as products_models  # noqa: F401
+from app.modules.sales import models as sales_models  # noqa: F401
+from app.modules.stock import models as stock_models  # noqa: F401
+from app.modules.tenants import models as tenants_models  # noqa: F401
 from app.modules.admin.router import router as admin_router
 from app.modules.auth.router import router as auth_router
 from app.modules.catalog.router import router as catalog_router

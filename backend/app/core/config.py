@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://brotas:brotas@localhost:5432/brotas"
 
     # Seguridad (JWT)
-    secret_key: str = "change-me"
+    secret_key: str = "cambia-esta-clave-secreta-por-una-mas-larga"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
