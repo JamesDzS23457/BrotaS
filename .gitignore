@@ -27,5 +27,9 @@ MEMORY.md
 BITACORA.docx
 _bitacora/
 
+# Archivos temporales de Office / LibreOffice
+.~lock.*
+~$*
+
 # Varios
 *.log
