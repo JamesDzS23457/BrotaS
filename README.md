@@ -26,7 +26,11 @@ backend/
     tests/            Pruebas
     main.py           App FastAPI (rutas bajo /api/v1)
   create_superadmin.py  Crea el superadmin desde la terminal
-frontend/             App React (en construcción)
+frontend/
+  src/
+    app/              Rutas y providers
+    features/         auth, products, sales, reports, catalog, admin (api, components, pages)
+    shared/           Componentes comunes y cliente de API
 ```
 
 Regla del backend: el **router** solo maneja HTTP, el **service** tiene las reglas de negocio y
@@ -61,6 +65,21 @@ uvicorn app.main:app --reload
 - API: http://127.0.0.1:8000
 - Documentación: http://127.0.0.1:8000/docs  (`POST /api/v1/auth/login`)
 - Health: `GET /health`
+
+## Puesta en marcha (frontend)
+
+```bash
+cd frontend
+npm install
+cp .env.example .env   # VITE_API_URL apunta al backend en http://localhost:8000/api/v1
+npm run dev
+```
+
+- App: http://localhost:5173 (por defecto)
+- El cliente de API (`src/shared/api/client.ts`) agrega el token JWT en cada petición.
+- El login (`src/features/auth`) llama a `POST /api/v1/auth/login` y guarda el token.
+
+> El backend debe estar corriendo y con CORS para `http://localhost:5173` (ya viene configurado).
 
 ## Comandos útiles
 
@@ -100,4 +119,4 @@ Fase 0 (fundaciones) en curso:
 - [x] **0.2** Modelos y migración inicial (tenants, users, products, stock, sales).
 - [x] **0.3** Autenticación: `POST /auth/login` con JWT, bcrypt (passlib) y `create_superadmin.py`.
 - [x] **0.4** Guardia de tenant: `get_tenant_id` (403 si el local está suspendido) y endpoint de ejemplo `GET /products`; pruebas de aislamiento entre locales.
-- [ ] Frontend.
+- [x] **0.5** Estructura del frontend (Vite + React + TS + Tailwind), React Router, cliente de API con JWT, contexto de autenticación y pantalla de login.
