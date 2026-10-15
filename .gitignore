@@ -24,6 +24,7 @@ dist/
 # Archivos solo para el asistente (no van al repositorio)
 AGENTS.md
 MEMORY.md
+BITACORA.md
 
 # Varios
 *.log

@@ -1,0 +1,86 @@
+# BrotaS
+
+Plataforma multi-inquilino con una aplicación por rubro. La primera aplicación es para
+**florerías**: inventario, catálogo, ventas y reportes internos. Cada local (sede) es un
+tenant independiente y solo usa las aplicaciones que contrató.
+
+> Control interno de inventario y ventas. La plataforma **no factura**.
+
+## Stack
+
+- **Backend:** Python 3.12, FastAPI, SQLAlchemy 2.0, Alembic, PostgreSQL.
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS.
+- **Fotos:** Azure Blob Storage.
+- **Despliegue:** Azure App Service (API), Azure Static Web Apps (web) y Azure Database for
+  PostgreSQL.
+
+## Estructura
+
+```
+backend/
+  alembic/            Migraciones
+  app/
+    core/             Configuración, base de datos, seguridad y dependencias
+    modules/          auth, tenants, products, stock, sales, reports, catalog, admin
+    shared/           Errores y utilidades comunes
+    tests/            Pruebas
+    main.py           App FastAPI (rutas bajo /api/v1)
+  create_superadmin.py  Crea el superadmin desde la terminal
+frontend/             App React (en construcción)
+```
+
+Regla del backend: el **router** solo maneja HTTP, el **service** tiene las reglas de negocio y
+los **models** solo describen datos. Los módulos no importan routers de otros módulos.
+
+## Puesta en marcha (backend)
+
+```bash
+cd backend
+
+# 1. Entorno virtual con Python 3.12
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# 2. PostgreSQL de desarrollo (Docker)
+docker run -d --name brotas-pg \
+  -e POSTGRES_USER=brotas -e POSTGRES_PASSWORD=brotas -e POSTGRES_DB=brotas \
+  -p 5432:5432 postgres:16
+
+# 3. Variables de entorno
+cp .env.example .env
+
+# 4. Base de datos y superadmin
+alembic upgrade head
+python create_superadmin.py
+
+# 5. Servidor
+uvicorn app.main:app --reload
+```
+
+- API: http://127.0.0.1:8000
+- Documentación: http://127.0.0.1:8000/docs  (`POST /api/v1/auth/login`)
+- Health: `GET /health`
+
+## Comandos útiles
+
+```bash
+# Backend (desde backend/)
+uvicorn app.main:app --reload   # servidor de desarrollo
+pytest                          # pruebas
+alembic upgrade head            # aplicar migraciones
+
+# Frontend (desde frontend/)
+npm run dev                     # servidor de desarrollo
+npm run build                   # build de producción
+npm run lint                    # lint
+```
+
+## Estado del proyecto
+
+Fase 0 (fundaciones) en curso:
+
+- [x] **0.1** Estructura del backend (FastAPI, core, módulos, shared).
+- [x] **0.2** Modelos y migración inicial (tenants, users, products, stock, sales).
+- [x] **0.3** Autenticación: `POST /auth/login` con JWT, bcrypt (passlib) y `create_superadmin.py`.
+- [ ] Frontend.
