@@ -1,8 +1,10 @@
 """Punto de entrada de la API."""
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
+from app.shared.errors import DomainError
 
 # Importar todos los modelos para que SQLAlchemy registre las tablas (necesario por las FK)
 from app.modules.auth import models as auth_models  # noqa: F401
@@ -13,7 +15,7 @@ from app.modules.tenants import models as tenants_models  # noqa: F401
 from app.modules.admin.router import router as admin_router
 from app.modules.auth.router import router as auth_router
 from app.modules.catalog.router import router as catalog_router
-from app.modules.products.router import router as products_router
+from app.modules.products.router import categories_router, router as products_router
 from app.modules.reports.router import router as reports_router
 from app.modules.sales.router import router as sales_router
 from app.modules.stock.router import router as stock_router
@@ -39,6 +41,7 @@ for module_router in (
     auth_router,
     tenants_router,
     products_router,
+    categories_router,
     stock_router,
     sales_router,
     reports_router,
@@ -46,6 +49,12 @@ for module_router in (
     admin_router,
 ):
     app.include_router(module_router, prefix=API_PREFIX)
+
+
+@app.exception_handler(DomainError)
+def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
+    """Traduce los errores de negocio (404, 409, 400...) a respuestas HTTP."""
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 @app.get("/health", tags=["health"])

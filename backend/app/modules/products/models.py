@@ -9,13 +9,18 @@ from app.core.database import Base
 
 
 class Category(Base):
-    """Categoría de productos de un local."""
+    """Categoría de productos de un local.
+
+    Se desactiva con borrado lógico (``is_active``): los productos que la usan
+    conservan la referencia, así que la categoría nunca se borra de verdad.
+    """
 
     __tablename__ = "categories"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(120))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
 
 class Product(Base):

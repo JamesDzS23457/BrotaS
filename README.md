@@ -138,3 +138,7 @@ Fase 0 (fundaciones) en curso:
 - [x] **0.3** Autenticación: `POST /auth/login` con JWT, bcrypt (passlib) y `create_superadmin.py`.
 - [x] **0.4** Guardia de tenant: `get_tenant_id` (403 si el local está suspendido) y endpoint de ejemplo `GET /products`; pruebas de aislamiento entre locales.
 - [x] **0.5** Estructura del frontend (Vite + React + TS + Tailwind), React Router, cliente de API con JWT, contexto de autenticación y pantalla de login. Identidad visual propia (paleta, tipografías y campo de tallos) y revisión de accesibilidad.
+
+Fase 1 (inventario) en curso:
+
+- [x] **1.1** Categorías y productos: CRUD completo con búsqueda, filtro por categoría y paginación; borrado lógico (`is_active`, migración `ff2050927a32`); solo `owner` escribe, `staff` solo lee; dinero en `Decimal`, stock solo vía movimientos. Pruebas: `20 passed`.
