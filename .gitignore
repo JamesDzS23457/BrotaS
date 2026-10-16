@@ -25,8 +25,12 @@ dist/
 AGENTS.md
 MEMORY.md
 BITACORA.docx
-SKILL.md
+/SKILL.md
 _bitacora/
+
+# Skills del agente (locales)
+.agents/
+skills-lock.json
 
 # Archivos temporales de Office / LibreOffice
 .~lock.*
