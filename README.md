@@ -79,6 +79,17 @@ npm run dev
 - El cliente de API (`src/shared/api/client.ts`) agrega el token JWT en cada petición.
 - El login (`src/features/auth`) llama a `POST /api/v1/auth/login` y guarda el token.
 
+### Identidad visual
+
+- Paleta y tipografías en `src/index.css` (Tailwind v4 `@theme`): verdes de tallo, acento
+  buganvilla y fondos fríos de invernadero.
+- Tipografías **Fraunces** (títulos) y **Hanken Grotesk** (interfaz), servidas por Google Fonts
+  desde `index.html`. Si no hay red, el navegador usa la fuente del sistema.
+- `src/shared/components/LogoMark.tsx` (la marca) y `StemField.tsx` (campo de tallos decorativo
+  del login).
+- Toda la interfaz respeta foco visible, `prefers-reduced-motion`, etiquetas de formulario y
+  enlaces altos de contraste.
+
 > El backend debe estar corriendo y con CORS para `http://localhost:5173` (ya viene configurado).
 
 ## Comandos útiles
@@ -119,4 +130,4 @@ Fase 0 (fundaciones) en curso:
 - [x] **0.2** Modelos y migración inicial (tenants, users, products, stock, sales).
 - [x] **0.3** Autenticación: `POST /auth/login` con JWT, bcrypt (passlib) y `create_superadmin.py`.
 - [x] **0.4** Guardia de tenant: `get_tenant_id` (403 si el local está suspendido) y endpoint de ejemplo `GET /products`; pruebas de aislamiento entre locales.
-- [x] **0.5** Estructura del frontend (Vite + React + TS + Tailwind), React Router, cliente de API con JWT, contexto de autenticación y pantalla de login.
+- [x] **0.5** Estructura del frontend (Vite + React + TS + Tailwind), React Router, cliente de API con JWT, contexto de autenticación y pantalla de login. Identidad visual propia (paleta, tipografías y campo de tallos) y revisión de accesibilidad.

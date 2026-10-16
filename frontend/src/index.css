@@ -1,1 +1,123 @@
 @import "tailwindcss";
+
+/* Identidad de Brota: invernadero frío. Nada de crema + terracota por defecto. */
+@theme {
+  --color-paper: #f3f6f1;
+  --color-ink: #10231a;
+  --color-forest: #0e2a1e;
+  --color-stem: #16804e;
+  --color-stem-strong: #0f663e;
+  --color-vine: #37906a;
+  --color-leaf: #2b7a58;
+  --color-bloom: #e0399a;
+  --color-mist: #ccdfd3;
+  --color-bark: #51675a;
+  --color-danger: #a51c30;
+  --color-danger-soft: #f8e7ea;
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  a,
+  button,
+  input,
+  label {
+    touch-action: manipulation;
+  }
+
+  /* Un solo estilo de foco para todo lo interactivo */
+  :focus-visible {
+    outline: 2px solid var(--color-stem);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+/* Enlace para saltar al contenido (visible solo con teclado) */
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 50;
+  transform: translateY(-200%);
+  border-radius: 6px;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* El campo de tallos crece una sola vez, al cargar */
+@keyframes brota-grow {
+  from {
+    transform: scaleY(0.04);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes brota-bloom {
+  from {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stem-field {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: brota-grow 900ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  }
+
+  .stem-leaves {
+    animation-delay: 120ms;
+  }
+
+  .stem-bloom {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: brota-bloom 650ms ease-out 600ms both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

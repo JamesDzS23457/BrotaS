@@ -1,20 +1,35 @@
-import type { InputHTMLAttributes } from "react";
+import { useId, type InputHTMLAttributes } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
+  error?: string;
 }
 
-// Campo de texto con etiqueta
-export default function Input({ label, id, className = "", ...rest }: InputProps) {
-  const inputId = id ?? label.toLowerCase().replace(/\s+/g, "-");
+// Campo de texto con etiqueta y error en línea
+export default function Input({ label, id, error, className = "", ...rest }: InputProps) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const errorId = `${inputId}-error`;
+
   return (
-    <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">
-      {label}
+    <div className="space-y-1.5">
+      <label htmlFor={inputId} className="block text-sm font-medium text-ink">
+        {label}
+      </label>
       <input
         id={inputId}
         {...rest}
-        className={`mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 ${className}`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+        className={`block w-full rounded-lg border bg-white px-3 py-2.5 text-ink transition-colors duration-150 placeholder:text-bark/70 focus-visible:border-stem ${
+          error ? "border-danger" : "border-mist"
+        } ${className}`}
       />
-    </label>
+      {error ? (
+        <p id={errorId} className="text-sm text-danger">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
