@@ -56,7 +56,7 @@ cp .env.example .env
 
 # 4. Base de datos y superadmin
 alembic upgrade head
-python create_superadmin.py
+python create_superadmin.py   # para cambiar una clave después: python reset_password.py
 
 # 5. Servidor
 uvicorn app.main:app --reload
