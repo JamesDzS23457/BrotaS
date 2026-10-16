@@ -3,9 +3,15 @@
 Todo lo que hay aquí recibe el ``tenant_id`` ya resuelto y lo usa en cada
 consulta: es imposible leer o escribir datos de otro local.
 """
+import logging
+from io import BytesIO
+from uuid import uuid4
+
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core import storage as blob_storage
 from app.modules.products.models import Category, Product
 from app.modules.products.schemas import (
     CategoryCreate,
@@ -13,7 +19,20 @@ from app.modules.products.schemas import (
     ProductCreate,
     ProductUpdate,
 )
-from app.shared.errors import ConflictError, DomainError, NotFoundError
+from app.shared.errors import (
+    ConflictError,
+    DomainError,
+    NotFoundError,
+    TooLargeError,
+    UnsupportedTypeError,
+)
+
+log = logging.getLogger(__name__)
+
+# Foto de producto: máximo 3 MB, solo jpg/png/webp reales, 1200 px de ancho
+MAX_IMAGE_BYTES = 3 * 1024 * 1024
+MAX_IMAGE_WIDTH = 1200
+IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
 
 
 def _patron_busqueda(texto: str) -> str:
@@ -215,4 +234,50 @@ def deactivate_product(db: Session, tenant_id: int, product_id: int) -> Product:
     product.is_active = False
     db.commit()
     db.refresh(product)
+    return product
+
+
+# ----------------------------------------------------------------------- fotos
+def prepare_image(raw: bytes) -> bytes:
+    """Valida la foto (tamaño y tipo real) y la deja en webp de 1200 px máximo.
+
+    Se mira el contenido de verdad con Pillow, no la extensión ni lo que diga el
+    navegador: un archivo disfrazado se rechaza.
+    """
+    if len(raw) > MAX_IMAGE_BYTES:
+        raise TooLargeError("La foto no puede pasar de 3 MB")
+    try:
+        original = Image.open(BytesIO(raw))
+        original.verify()  # comprueba que el archivo esté completo
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError):
+        raise DomainError("El archivo no es una imagen válida")
+    imagen = Image.open(BytesIO(raw))  # verify() cierra: hay que reabrir
+    if imagen.format not in IMAGE_FORMATS:
+        raise UnsupportedTypeError("La foto debe ser jpg, png o webp")
+    if imagen.mode == "P":
+        imagen = imagen.convert("RGBA")  # paleta: se conserva la transparencia
+    elif imagen.mode not in ("RGB", "RGBA"):
+        imagen = imagen.convert("RGB")
+    if imagen.width > MAX_IMAGE_WIDTH:
+        alto = round(imagen.height * MAX_IMAGE_WIDTH / imagen.width)
+        imagen = imagen.resize((MAX_IMAGE_WIDTH, alto), Image.LANCZOS)
+    salida = BytesIO()
+    imagen.save(salida, format="WEBP", quality=82, method=6)
+    return salida.getvalue()
+
+
+def set_product_image(db: Session, tenant_id: int, product_id: int, raw: bytes) -> Product:
+    """Sube la foto del producto a Azure y guarda su URL (borra la anterior).
+
+    La foto queda en `<tenant>/<uuid>.webp`. La anterior se borra después de
+    guardar la nueva: si el borrado falla, la foto igual quedó reemplazada.
+    """
+    product = get_product(db, tenant_id, product_id)
+    foto = prepare_image(raw)
+    anterior = product.image_url
+    product.image_url = blob_storage.upload_image(f"{tenant_id}/{uuid4().hex}.webp", foto)
+    db.commit()
+    db.refresh(product)
+    if anterior and anterior != product.image_url:
+        blob_storage.delete_image(anterior)
     return product

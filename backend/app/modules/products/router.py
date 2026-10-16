@@ -6,7 +6,7 @@ ser ``owner`` del local (``staff`` solo lee).
 """
 from math import ceil
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -100,6 +100,20 @@ def deactivate_product(
 ) -> Product:
     """Desactiva un producto (borrado lógico, no se borra de la base)."""
     return service.deactivate_product(db, tenant_id, product_id)
+
+
+@router.post("/{product_id}/image", response_model=ProductOut)
+async def upload_product_image(
+    product_id: int,
+    file: UploadFile = File(..., description="Foto jpg, png o webp de 3 MB máximo"),
+    tenant_id: int = Depends(get_tenant_id),
+    _: User = Depends(require_role(UserRole.OWNER)),
+    db: Session = Depends(get_db),
+) -> Product:
+    """Sube la foto del producto: se valida, se deja en webp de 1200 px y se guarda
+    en Azure. Si había otra foto nuestra, se borra. Solo el dueño."""
+    contenido = await file.read()
+    return service.set_product_image(db, tenant_id, product_id, contenido)
 
 
 # ------------------------------------------------------------------ categorías

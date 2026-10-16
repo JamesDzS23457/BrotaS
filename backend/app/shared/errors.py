@@ -25,3 +25,21 @@ class ConflictError(DomainError):
     """El recurso choca con otro que ya existe."""
 
     status_code = 409
+
+
+class TooLargeError(DomainError):
+    """El archivo enviado supera el tamaño permitido."""
+
+    status_code = 413
+
+
+class UnsupportedTypeError(DomainError):
+    """El tipo de archivo no está permitido."""
+
+    status_code = 415
+
+
+class StorageNotConfiguredError(DomainError):
+    """Falta configurar el almacenamiento de fotos."""
+
+    status_code = 503

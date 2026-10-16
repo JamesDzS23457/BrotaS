@@ -9,5 +9,6 @@ passlib[bcrypt]
 bcrypt==4.0.1
 python-multipart
 azure-storage-blob
+Pillow
 pytest
 httpx

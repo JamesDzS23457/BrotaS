@@ -28,9 +28,9 @@ class Settings(BaseSettings):
     # Orígenes permitidos por CORS, separados por comas
     cors_origins: str = "http://localhost:5173"
 
-    # Fotos en Azure Blob Storage
+    # Fotos en Azure Blob Storage (contenedor "productos" por defecto)
     azure_storage_connection_string: str = ""
-    azure_storage_container: str = ""
+    azure_storage_container: str = "productos"
 
     @property
     def cors_origins_list(self) -> list[str]:
