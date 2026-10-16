@@ -71,85 +71,38 @@
   transform: translateY(0);
 }
 
-/* Luz de invernadero: dos rayos suaves y un resplandor desde arriba */
-.scene {
-  background-color: var(--color-forest);
-  background-image:
-    linear-gradient(118deg, transparent 30%, rgb(255 255 255 / 0.07) 40%, transparent 49%),
-    linear-gradient(118deg, transparent 58%, rgb(255 255 255 / 0.045) 68%, transparent 78%),
-    radial-gradient(130% 95% at 50% -12%, #21603f 0%, #16402999 42%, transparent 100%),
-    radial-gradient(130% 95% at 50% -12%, #1f5941 0%, #163e2a 42%, var(--color-forest) 100%);
-}
-
-/* El ramo: una sola secuencia de entrada (el balde entra, los tallos brotan, las flores abren) y luego un vaivén suave */
-@keyframes brota-vase {
+/* La foto del login: un acercamiento muy lento y continuo (tipo Ken Burns) */
+@keyframes brota-drift {
   from {
-    opacity: 0;
-    transform: translateY(18px);
+    transform: scale(1.04) translate3d(0, 0, 0);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: scale(1.15) translate3d(-1.4%, -1.8%, 0);
   }
 }
 
-@keyframes brota-sprout {
-  from {
-    transform: scaleY(0.04);
-    opacity: 0;
-  }
-  to {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-
-@keyframes brota-blossom {
-  0% {
-    transform: scale(0.35) rotate(-14deg);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.06) rotate(3deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-
-@keyframes brota-sway {
-  from {
-    transform: rotate(-1.1deg);
-  }
-  to {
-    transform: rotate(1.1deg);
-  }
+.photo-drift {
+  transform: scale(1.04);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .bouquet-vase {
-    animation: brota-vase 450ms ease-out both;
+  .photo-drift {
+    animation: brota-drift 32s ease-in-out infinite alternate;
+    will-change: transform;
   }
+}
 
-  .bouquet-stems {
-    transform-box: fill-box;
-    transform-origin: center bottom;
-    animation: brota-sprout 850ms cubic-bezier(0.22, 0.9, 0.3, 1) 120ms both;
-  }
-
-  .bouquet-blossom {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: brota-blossom 560ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
-  }
-
-  .bouquet-sway {
-    transform-box: view-box;
-    transform-origin: 450px 522px;
-    animation: brota-sway 7s ease-in-out 1600ms infinite alternate both;
-  }
+/* Capa de marca sobre la foto: oscurece arriba a la izquierda (logo y titular)
+   y abajo (el crédito), y deja respirar el centro. */
+.photo-veil {
+  background-image:
+    radial-gradient(120% 85% at 0% 0%, rgb(14 42 30 / 0.94) 0%, rgb(14 42 30 / 0) 66%),
+    linear-gradient(
+      180deg,
+      rgb(14 42 30 / 0.66) 0%,
+      rgb(14 42 30 / 0.26) 42%,
+      rgb(14 42 30 / 0.8) 100%
+    );
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,7 +4,8 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import Button from "../../../shared/components/Button";
 import Input from "../../../shared/components/Input";
 import LogoMark from "../../../shared/components/LogoMark";
-import Bouquet from "../../../shared/components/Bouquet";
+import heroPhoto from "../../../assets/hero-floristeria-1200.webp";
+import heroPhotoSmall from "../../../assets/hero-floristeria-700.webp";
 import { ApiError } from "../../../shared/api/client";
 import { PLATFORM_NAME } from "../../../shared/config";
 import { useAuth } from "../hooks/useAuth";
@@ -47,18 +48,44 @@ export default function LoginPage() {
         Saltar al contenido
       </a>
 
-      {/* Panel de marca */}
-      <section className="scene relative overflow-hidden px-6 pt-8 pb-48 sm:px-10 lg:flex lg:flex-col lg:px-14 lg:py-12">
-        <div className="relative z-10 flex items-center gap-2.5 text-paper">
-          <LogoMark className="h-9 w-9" />
-          <p className="font-display text-2xl font-semibold tracking-tight">{PLATFORM_NAME}</p>
+      {/* Panel de marca: una foto de floristería con un acercamiento muy lento */}
+      <section className="relative flex min-h-[27rem] flex-col overflow-hidden bg-forest px-6 py-10 sm:px-10 lg:px-14 lg:py-12">
+        <img
+          src={heroPhoto}
+          srcSet={`${heroPhotoSmall} 700w, ${heroPhoto} 1200w`}
+          sizes="(min-width: 1024px) 52vw, 100vw"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          fetchPriority="high"
+          className="photo-drift absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="photo-veil absolute inset-0" aria-hidden="true" />
+
+        <div className="relative flex flex-1 flex-col justify-between gap-10">
+          <div className="flex items-center gap-2.5 text-paper">
+            <LogoMark className="h-9 w-9" />
+            <p className="font-display text-2xl font-semibold tracking-tight">{PLATFORM_NAME}</p>
+          </div>
+
+          <p className="max-w-sm font-display text-[1.7rem] leading-[1.15] text-paper sm:text-3xl lg:max-w-md lg:text-4xl">
+            El inventario y las ventas de tu floristería, ordenados en un solo lugar.
+          </p>
+
+          {/* Crédito obligatorio de la foto (CC BY 2.0) */}
+          <p className="text-xs text-mist/70">
+            Foto de{" "}
+            <a
+              className="underline decoration-mist/40 underline-offset-2 hover:text-paper"
+              href="https://commons.wikimedia.org/wiki/File:Florist_working_on_a_bouquet_of_flowers.jpg"
+              target="_blank"
+              rel="noreferrer"
+            >
+              direct2Florist
+            </a>
+            , bajo licencia CC BY 2.0.
+          </p>
         </div>
-
-        <p className="relative z-10 mt-8 max-w-sm font-display text-[1.7rem] leading-[1.15] text-paper sm:text-3xl lg:mt-20 lg:max-w-md lg:text-4xl">
-          El inventario y las ventas de tu floristería, ordenados en un solo lugar.
-        </p>
-
-        <Bouquet className="pointer-events-none absolute inset-x-0 bottom-0 h-48 w-full sm:h-60 lg:h-[64%]" />
       </section>
 
       {/* Formulario */}

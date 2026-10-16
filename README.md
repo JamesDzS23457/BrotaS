@@ -85,10 +85,13 @@ npm run dev
   buganvilla y fondos fríos de invernadero.
 - Tipografías **Fraunces** (títulos) y **Hanken Grotesk** (interfaz), servidas por Google Fonts
   desde `index.html`. Si no hay red, el navegador usa la fuente del sistema.
-- `src/shared/components/LogoMark.tsx` (una marca con pimpollo de rosa) y `Bouquet.tsx` (el ramo
-  del login: balde, rosa, crisantemo, tulipán y gypsófila, con entrada y vaivén suaves).
-- El panel del login usa la clase `.scene` (en `index.css`): luz de invernadero desde arriba, dos
-  rayos suaves y follaje lejano que da profundidad. Todo es SVG/CSS, sin imágenes externas.
+- `src/shared/components/LogoMark.tsx`: la marca (un pimpollo de rosa).
+- El panel del login lleva una **fotografía** de floristería (`src/assets/hero-floristeria-1200.webp`
+  y `-700.webp`) con `srcset`, un acercamiento muy lento de fondo (`.photo-drift`) y una capa verde
+  de marca (`.photo-veil`) que garantiza el contraste del texto. Todo en `index.css`.
+- Crédito de la foto (**CC BY 2.0**, obligatorio): *Florist working on a bouquet of flowers* de
+  [direct2Florist](https://commons.wikimedia.org/wiki/File:Florist_working_on_a_bouquet_of_flowers.jpg),
+  vía Wikimedia Commons. El crédito aparece también en el pie del panel.
 - El diseño es *mobile first* con Tailwind (no Bootstrap): `sm:`/`lg:` en orden ascendente, grid y
   flex, `min-w-0`/`truncate` y anchos máximos para que nada se desborde en celular.
 - Toda la interfaz respeta foco visible, `prefers-reduced-motion`, etiquetas de formulario y
