@@ -85,8 +85,8 @@ npm run dev
   buganvilla y fondos fríos de invernadero.
 - Tipografías **Fraunces** (títulos) y **Hanken Grotesk** (interfaz), servidas por Google Fonts
   desde `index.html`. Si no hay red, el navegador usa la fuente del sistema.
-- `src/shared/components/LogoMark.tsx` (la marca) y `StemField.tsx` (campo de tallos decorativo
-  del login).
+- `src/shared/components/LogoMark.tsx` (una marca con pimpollo de rosa) y `Bouquet.tsx` (el ramo
+  del login: balde, rosa, crisantemo, tulipán y gypsófila, con entrada y vaivén suaves).
 - Toda la interfaz respeta foco visible, `prefers-reduced-motion`, etiquetas de formulario y
   enlaces altos de contraste.
 
