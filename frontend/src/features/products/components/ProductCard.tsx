@@ -7,12 +7,14 @@ import type { Product } from "../api/products";
 // Tarjeta de un producto: foto, nombre, precio, stock y acciones del dueño
 export default function ProductCard({
   product,
+  currency = "COP",
   canManage,
   stockBusy,
   onEdit,
   onStock,
 }: {
   product: Product;
+  currency?: string | null;
   canManage: boolean;
   stockBusy: boolean;
   onEdit: (product: Product) => void;
@@ -54,7 +56,7 @@ export default function ProductCard({
         <h2 className="font-display text-lg font-semibold leading-snug text-ink">
           {product.name}
         </h2>
-        <p className="text-lg font-bold text-ink">{formatCOP(product.price)}</p>
+        <p className="text-lg font-bold text-ink">{formatCOP(product.price, currency)}</p>
         <p className={`text-sm font-medium ${pocoStock ? "text-danger" : "text-bark"}`}>
           Stock: {product.stock}
           {pocoStock ? ` (mínimo ${product.min_stock})` : null}

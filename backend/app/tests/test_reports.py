@@ -31,7 +31,7 @@ def _local_dueno(
 def _vender(client: TestClient, cabeceras: dict[str, str], items: list[dict]) -> dict:
     """Registra una venta y la devuelve."""
     respuesta = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": items, "payment_method": "efectivo"},
         headers=cabeceras,
     )
@@ -54,7 +54,7 @@ def test_reporte_del_dia_con_ventas(
     _vender(client, cabeceras, [{"product_id": rosa.id, "quantity": 1}, {"product_id": clavel.id, "quantity": 4}])
 
     hoy = datetime.now(BOGOTA).date().isoformat()
-    respuesta = client.get("/api/v1/reports/daily", params={"date": hoy}, headers=cabeceras)
+    respuesta = client.get("/api/v1/florist/reports/daily", params={"date": hoy}, headers=cabeceras)
 
     assert respuesta.status_code == 200, respuesta.text
     datos = respuesta.json()
@@ -84,7 +84,7 @@ def test_top_corta_en_cinco(
     _vender(client, cabeceras, [{"product_id": pid, "quantity": 1} for pid in ids])
 
     hoy = datetime.now(BOGOTA).date().isoformat()
-    datos = client.get("/api/v1/reports/daily", params={"date": hoy}, headers=cabeceras).json()
+    datos = client.get("/api/v1/florist/reports/daily", params={"date": hoy}, headers=cabeceras).json()
 
     assert len(datos["top_products"]) == 5
     assert datos["sales_count"] == 1
@@ -100,7 +100,7 @@ def test_dia_sin_ventas_da_ceros(
     _, cabeceras = _local_dueno(crear_local, crear_usuario, autenticar)
 
     datos = client.get(
-        "/api/v1/reports/daily", params={"date": "2020-01-15"}, headers=cabeceras
+        "/api/v1/florist/reports/daily", params={"date": "2020-01-15"}, headers=cabeceras
     ).json()
 
     assert datos["total_sold"] == "0"
@@ -136,7 +136,7 @@ def test_solo_cuenta_las_ventas_de_ese_dia_y_ese_local(
     )
 
     datos = client.get(
-        "/api/v1/reports/daily", params={"date": "2020-05-10"}, headers=cabeceras
+        "/api/v1/florist/reports/daily", params={"date": "2020-05-10"}, headers=cabeceras
     ).json()
 
     assert datos["total_sold"] == "5000.00"
@@ -157,13 +157,13 @@ def test_reporte_exige_login_y_fecha_valida(
     cabeceras = autenticar("empleada@floreria.co")
     hoy = datetime.now(BOGOTA).date().isoformat()
 
-    assert client.get("/api/v1/reports/daily", params={"date": hoy}).status_code == 401
-    assert client.get("/api/v1/reports/daily", headers=cabeceras).status_code == 422
+    assert client.get("/api/v1/florist/reports/daily", params={"date": hoy}).status_code == 401
+    assert client.get("/api/v1/florist/reports/daily", headers=cabeceras).status_code == 422
     assert (
-        client.get("/api/v1/reports/daily", params={"date": "ayer"}, headers=cabeceras).status_code
+        client.get("/api/v1/florist/reports/daily", params={"date": "ayer"}, headers=cabeceras).status_code
         == 422
     )
     assert (
-        client.get("/api/v1/reports/daily", params={"date": hoy}, headers=cabeceras).status_code
+        client.get("/api/v1/florist/reports/daily", params={"date": hoy}, headers=cabeceras).status_code
         == 200
     )

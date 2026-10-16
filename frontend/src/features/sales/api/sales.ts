@@ -27,7 +27,7 @@ export interface Sale {
 }
 
 export function createSale(items: { product_id: number; quantity: number }[], paymentMethod: PaymentMethod): Promise<Sale> {
-  return apiClient<Sale>("/sales", {
+  return apiClient<Sale>("/florist/sales", {
     method: "POST",
     body: { items, payment_method: paymentMethod },
   });

@@ -4,12 +4,14 @@ from collections.abc import Callable
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.modules.auth.models import User, UserRole
-from app.modules.tenants.models import Tenant, TenantStatus
+from app.modules.tenants.models import Tenant, TenantApp, TenantStatus
+from app.modules.tenants.service import has_feature
 
 # El token se envía en el encabezado Authorization (para /docs y los clientes)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -82,5 +84,50 @@ def require_role(*roles: UserRole) -> Callable[..., User]:
                 detail="No tiene permisos para esta acción",
             )
         return current_user
+
+    return checker
+
+
+def require_app(code: str) -> Callable[..., int]:
+    """Devuelve una dependencia que exige el local activo y con esa app contratada.
+
+    Reemplaza a ``get_tenant_id`` en los endpoints de cada aplicación.
+    """
+
+    def checker(
+        tenant_id: int = Depends(get_tenant_id),
+        db: Session = Depends(get_db),
+    ) -> int:
+        contratada = db.scalar(
+            select(TenantApp.id).where(
+                TenantApp.tenant_id == tenant_id,
+                TenantApp.app_code == code,
+                TenantApp.is_active.is_(True),
+            )
+        )
+        if contratada is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Este local no tiene contratada esa aplicación",
+            )
+        return tenant_id
+
+    return checker
+
+
+def require_feature(feature: str) -> Callable[..., int]:
+    """Devuelve una dependencia que exige que el plan del local traiga esa función
+    (por ejemplo, `pagina` para el catálogo público)."""
+
+    def checker(
+        tenant_id: int = Depends(get_tenant_id),
+        db: Session = Depends(get_db),
+    ) -> int:
+        if not has_feature(db, tenant_id, feature):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="El plan de este local no incluye esa función",
+            )
+        return tenant_id
 
     return checker

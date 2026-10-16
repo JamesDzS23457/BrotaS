@@ -8,11 +8,12 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_tenant_id, require_role
+from app.core.deps import require_app, require_role
 from app.modules.auth.models import User, UserRole
 from app.modules.sales import service
 from app.modules.sales.models import Sale, SaleItem
 from app.modules.sales.schemas import SaleCreate, SaleItemOut, SaleOut
+from app.modules.tenants.service import get_timezone
 
 router = APIRouter(prefix="/sales", tags=["sales"])
 
@@ -43,7 +44,7 @@ def _sale_out(sale: Sale, items: list[SaleItem]) -> SaleOut:
 @router.post("", response_model=SaleOut, status_code=status.HTTP_201_CREATED)
 def create_sale(
     data: SaleCreate,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     current_user: User = Depends(require_role(*VENDEDORES)),
     db: Session = Depends(get_db),
 ) -> SaleOut:
@@ -57,9 +58,14 @@ def create_sale(
 def read_sales(
     desde: date | None = Query(None, description="Primer día (AAAA-MM-DD, Bogotá)"),
     hasta: date | None = Query(None, description="Último día, incluido (AAAA-MM-DD)"),
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(*VENDEDORES)),
     db: Session = Depends(get_db),
 ) -> list[SaleOut]:
     """Lista las ventas del local, con filtro de fechas opcional."""
-    return [_sale_out(sale, items) for sale, items in service.list_sales(db, tenant_id, desde=desde, hasta=hasta)]
+    return [
+        _sale_out(sale, items)
+        for sale, items in service.list_sales(
+            db, tenant_id, desde=desde, hasta=hasta, tz=get_timezone(db, tenant_id)
+        )
+    ]

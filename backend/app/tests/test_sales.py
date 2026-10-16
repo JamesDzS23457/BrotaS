@@ -43,7 +43,7 @@ def test_dueno_vende_y_todo_cuadra(
     clavel = crear_producto(local.id, "Clavel", precio=1800, stock=10)
 
     respuesta = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={
             "items": [
                 {"product_id": rosa.id, "quantity": 2},
@@ -89,15 +89,15 @@ def test_item_con_precio_congelado(
     producto = crear_producto(local.id, "Rosa roja", precio=2500, stock=10)
 
     primera = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "tarjeta"},
         headers=cabeceras,
     ).json()
     client.patch(
-        f"/api/v1/products/{producto.id}", json={"price": "3200.00"}, headers=cabeceras
+        f"/api/v1/florist/products/{producto.id}", json={"price": "3200.00"}, headers=cabeceras
     )
     segunda = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "tarjeta"},
         headers=cabeceras,
     ).json()
@@ -121,7 +121,7 @@ def test_sin_stock_no_guarda_nada(
     crear_producto(local.id, "Clavel", precio=1800, stock=1)
 
     respuesta = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={
             "items": [
                 {"product_id": rosa.id, "quantity": 2},
@@ -151,7 +151,7 @@ def test_producto_inactivo_no_se_vende(
     producto = crear_producto(local.id, "Rosa roja", precio=2500, stock=10, is_active=False)
 
     respuesta = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "efectivo"},
         headers=cabeceras,
     )
@@ -172,25 +172,25 @@ def test_venta_invalida_da_422_o_404(
     producto = crear_producto(local.id, "Rosa roja", precio=2500, stock=10)
 
     base = {"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "efectivo"}
-    assert client.post("/api/v1/sales", json={**base, "items": []}, headers=cabeceras).status_code == 422
+    assert client.post("/api/v1/florist/sales", json={**base, "items": []}, headers=cabeceras).status_code == 422
     assert (
         client.post(
-            "/api/v1/sales",
+            "/api/v1/florist/sales",
             json={**base, "items": [{"product_id": producto.id, "quantity": 0}]},
             headers=cabeceras,
         ).status_code
         == 422
     )
     assert (
-        client.post("/api/v1/sales", json={**base, "payment_method": "fiado"}, headers=cabeceras).status_code
+        client.post("/api/v1/florist/sales", json={**base, "payment_method": "fiado"}, headers=cabeceras).status_code
         == 422
     )
     assert (
-        client.post("/api/v1/sales", json=base, headers=cabeceras_b).status_code == 404
+        client.post("/api/v1/florist/sales", json=base, headers=cabeceras_b).status_code == 404
     )
     assert (
         client.post(
-            "/api/v1/sales",
+            "/api/v1/florist/sales",
             json={**base, "items": [{"product_id": 999999, "quantity": 1}]},
             headers=cabeceras,
         ).status_code
@@ -211,7 +211,7 @@ def test_producto_repetido_se_suma_en_un_solo_item(
     producto = crear_producto(local.id, "Rosa roja", precio=2500, stock=10)
 
     respuesta = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={
             "items": [
                 {"product_id": producto.id, "quantity": 2},
@@ -243,10 +243,10 @@ def test_empleado_vende_y_anonimo_no(
     producto = crear_producto(local.id, "Rosa roja", precio=2500, stock=10)
     cuerpo = {"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "efectivo"}
 
-    assert client.post("/api/v1/sales", json=cuerpo, headers=cabeceras).status_code == 201
-    assert client.get("/api/v1/sales", headers=cabeceras).status_code == 200
-    assert client.post("/api/v1/sales", json=cuerpo).status_code == 401
-    assert client.get("/api/v1/sales").status_code == 401
+    assert client.post("/api/v1/florist/sales", json=cuerpo, headers=cabeceras).status_code == 201
+    assert client.get("/api/v1/florist/sales", headers=cabeceras).status_code == 200
+    assert client.post("/api/v1/florist/sales", json=cuerpo).status_code == 401
+    assert client.get("/api/v1/florist/sales").status_code == 401
 
 
 def test_listar_con_filtro_de_fechas(
@@ -264,12 +264,12 @@ def test_listar_con_filtro_de_fechas(
     ajeno = crear_producto(otro.id, "Girasol", precio=1000, stock=100)
 
     vieja = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "efectivo"},
         headers=cabeceras,
     ).json()
     de_otro = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": [{"product_id": ajeno.id, "quantity": 1}], "payment_method": "efectivo"},
         headers=autenticar(f"duena@floreria-b.co"),
     ).json()
@@ -281,25 +281,25 @@ def test_listar_con_filtro_de_fechas(
     )
 
     de_2020 = client.get(
-        "/api/v1/sales", params={"desde": "2020-01-01", "hasta": "2020-12-31"}, headers=cabeceras
+        "/api/v1/florist/sales", params={"desde": "2020-01-01", "hasta": "2020-12-31"}, headers=cabeceras
     ).json()
     assert [v["id"] for v in de_2020] == [vieja["id"]]  # la del otro local no sale
 
     hoy = datetime.now(BOGOTA).date().isoformat()
     de_hoy = client.get(
-        "/api/v1/sales", params={"desde": hoy, "hasta": hoy}, headers=cabeceras
+        "/api/v1/florist/sales", params={"desde": hoy, "hasta": hoy}, headers=cabeceras
     ).json()
     assert de_hoy == []
 
     # Una venta de hoy para cerrar el filtro
     de_hoy_id = client.post(
-        "/api/v1/sales",
+        "/api/v1/florist/sales",
         json={"items": [{"product_id": producto.id, "quantity": 1}], "payment_method": "tarjeta"},
         headers=cabeceras,
     ).json()["id"]
     de_hoy = client.get(
-        "/api/v1/sales", params={"desde": hoy, "hasta": hoy}, headers=cabeceras
+        "/api/v1/florist/sales", params={"desde": hoy, "hasta": hoy}, headers=cabeceras
     ).json()
     assert [v["id"] for v in de_hoy] == [de_hoy_id]
-    todas = client.get("/api/v1/sales", headers=cabeceras).json()
+    todas = client.get("/api/v1/florist/sales", headers=cabeceras).json()
     assert [v["id"] for v in todas] == [de_hoy_id, vieja["id"]]  # más reciente primero

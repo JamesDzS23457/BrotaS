@@ -12,8 +12,9 @@ import CartPanel, { type CartLine } from "../components/CartPanel";
 
 // Nueva venta: buscar, armar el carrito, pagar y confirmar
 export default function SalesPage() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const moneda = user?.currency ?? "COP";
 
   const [busqueda, setBusqueda] = useState("");
   const [busquedaDebida, setBusquedaDebida] = useState("");
@@ -125,7 +126,7 @@ export default function SalesPage() {
         <p className="mt-2 text-bark">
           Folio #{venta.id} · {venta.items.reduce((n, i) => n + i.quantity, 0)} producto(s)
         </p>
-        <p className="mt-1 font-display text-2xl font-bold text-ink">{formatCOP(venta.total)}</p>
+        <p className="mt-1 font-display text-2xl font-bold text-ink">{formatCOP(venta.total, moneda)}</p>
         <Button onClick={nuevaVenta} className="mt-6 w-full">
           Nueva venta
         </Button>
@@ -177,7 +178,7 @@ export default function SalesPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-ink">{producto.name}</p>
                         <p className="text-xs text-bark">
-                          {formatCOP(producto.price)} · Stock: {producto.stock}
+                          {formatCOP(producto.price, moneda)} · Stock: {producto.stock}
                         </p>
                       </div>
                       <Button
@@ -204,6 +205,7 @@ export default function SalesPage() {
               lines={lineas}
               payment={pago}
               saving={guardando}
+              currency={moneda}
               onQuantity={cambiarCantidad}
               onRemove={quitar}
               onPayment={setPago}

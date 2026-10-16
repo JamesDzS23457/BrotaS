@@ -15,13 +15,13 @@ from app.modules.sales.models import Sale, SaleItem
 from app.modules.stock import service as stock_service
 from app.modules.reports.schemas import DailyReport, TopProduct
 
-# Los días del reporte se entienden en la zona horaria de los reportes
+# Si nadie indica otra, los días del reporte se entienden en Bogotá
 BOGOTA = ZoneInfo("America/Bogota")
 
 
-def get_daily_report(db: Session, tenant_id: int, fecha: date) -> DailyReport:
+def get_daily_report(db: Session, tenant_id: int, fecha: date, tz: ZoneInfo = BOGOTA) -> DailyReport:
     """Arma el reporte del día: total, conteo, top 5 y stock bajo."""
-    inicio = datetime(fecha.year, fecha.month, fecha.day, tzinfo=BOGOTA)
+    inicio = datetime(fecha.year, fecha.month, fecha.day, tzinfo=tz)
     fin = inicio + timedelta(days=1)
     en_el_dia = [Sale.tenant_id == tenant_id, Sale.created_at >= inicio, Sale.created_at < fin]
 

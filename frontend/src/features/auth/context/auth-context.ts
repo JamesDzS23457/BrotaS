@@ -5,6 +5,8 @@ export interface AuthUser {
   tenantId: number | null;
   role: string;
   email: string | null;
+  currency: string | null;
+  timezone: string | null;
 }
 
 export interface AuthContextValue {

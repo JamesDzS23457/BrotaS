@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_tenant_id, require_role
+from app.core.deps import require_app, require_role
 from app.modules.auth.models import User, UserRole
 from app.modules.products import service
 from app.modules.products.models import Category, Product
@@ -38,7 +38,7 @@ def read_products(
     include_inactive: bool = Query(False, description="Incluye los productos desactivados"),
     page: int = Query(1, ge=1, description="Página (empieza en 1)"),
     page_size: int = Query(20, ge=1, le=100, description="Productos por página"),
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     db: Session = Depends(get_db),
 ) -> ProductPage:
     """Lista los productos del local del usuario, con búsqueda, filtro y paginación."""
@@ -63,7 +63,7 @@ def read_products(
 @router.post("", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
 def create_product(
     data: ProductCreate,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Product:
@@ -73,7 +73,7 @@ def create_product(
 
 @router.get("/low-stock", response_model=list[ProductOut])
 def read_low_stock(
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     db: Session = Depends(get_db),
 ) -> list[Product]:
     """Lista los productos activos con stock menor o igual a su mínimo.
@@ -86,7 +86,7 @@ def read_low_stock(
 @router.get("/{product_id}", response_model=ProductOut)
 def read_product(
     product_id: int,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     db: Session = Depends(get_db),
 ) -> Product:
     """Devuelve un producto del local (aunque esté desactivado)."""
@@ -97,7 +97,7 @@ def read_product(
 def update_product(
     product_id: int,
     data: ProductUpdate,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Product:
@@ -108,7 +108,7 @@ def update_product(
 @router.delete("/{product_id}", response_model=ProductOut)
 def deactivate_product(
     product_id: int,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Product:
@@ -120,7 +120,7 @@ def deactivate_product(
 async def upload_product_image(
     product_id: int,
     file: UploadFile = File(..., description="Foto jpg, png o webp de 3 MB máximo"),
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Product:
@@ -134,7 +134,7 @@ async def upload_product_image(
 def move_product_stock(
     product_id: int,
     data: StockMove,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     current_user: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> StockMovementOut:
@@ -157,7 +157,7 @@ def move_product_stock(
 def read_categories(
     search: str | None = Query(None, max_length=120, description="Busca por nombre"),
     include_inactive: bool = Query(False, description="Incluye las categorías desactivadas"),
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     db: Session = Depends(get_db),
 ) -> list[Category]:
     """Lista las categorías del local.
@@ -173,7 +173,7 @@ def read_categories(
 @categories_router.post("", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
 def create_category(
     data: CategoryCreate,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Category:
@@ -184,7 +184,7 @@ def create_category(
 @categories_router.get("/{category_id}", response_model=CategoryOut)
 def read_category(
     category_id: int,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     db: Session = Depends(get_db),
 ) -> Category:
     """Devuelve una categoría del local (aunque esté desactivada)."""
@@ -195,7 +195,7 @@ def read_category(
 def update_category(
     category_id: int,
     data: CategoryUpdate,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Category:
@@ -206,7 +206,7 @@ def update_category(
 @categories_router.delete("/{category_id}", response_model=CategoryOut)
 def deactivate_category(
     category_id: int,
-    tenant_id: int = Depends(get_tenant_id),
+    tenant_id: int = Depends(require_app("florist")),
     _: User = Depends(require_role(UserRole.OWNER)),
     db: Session = Depends(get_db),
 ) -> Category:

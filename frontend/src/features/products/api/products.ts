@@ -64,23 +64,23 @@ export function listProducts(opciones: {
   page?: number;
   page_size?: number;
 }): Promise<ProductPage> {
-  return apiClient<ProductPage>(`/products${query(opciones)}`);
+  return apiClient<ProductPage>(`/florist/products${query(opciones)}`);
 }
 
 export function listCategories(): Promise<Category[]> {
-  return apiClient<Category[]>("/categories");
+  return apiClient<Category[]>("/florist/categories");
 }
 
 export function createProduct(data: ProductForm): Promise<Product> {
-  return apiClient<Product>("/products", { method: "POST", body: data });
+  return apiClient<Product>("/florist/products", { method: "POST", body: data });
 }
 
 export function updateProduct(id: number, data: Partial<ProductForm>): Promise<Product> {
-  return apiClient<Product>(`/products/${id}`, { method: "PATCH", body: data });
+  return apiClient<Product>(`/florist/products/${id}`, { method: "PATCH", body: data });
 }
 
 export function moveStock(id: number, change: number, reason: string): Promise<StockMovement> {
-  return apiClient<StockMovement>(`/products/${id}/stock`, {
+  return apiClient<StockMovement>(`/florist/products/${id}/stock`, {
     method: "POST",
     body: { change, reason },
   });
@@ -91,7 +91,7 @@ export async function uploadProductImage(id: number, file: File): Promise<Produc
   const form = new FormData();
   form.append("file", file);
   const token = getToken();
-  const response = await fetch(`${API_URL}/products/${id}/image`, {
+  const response = await fetch(`${API_URL}/florist/products/${id}/image`, {
     method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,

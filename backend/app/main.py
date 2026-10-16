@@ -34,21 +34,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Todas las rutas de los módulos cuelgan de /api/v1
+# Todas las rutas de plataforma cuelgan de /api/v1; las de cada aplicación, de
+# /api/v1/<app> (así se versiona y se suman rubros sin romper nada)
 API_PREFIX = "/api/v1"
+FLORIST_PREFIX = "/api/v1/florist"
 
 for module_router in (
     auth_router,
     tenants_router,
+    admin_router,
+):
+    app.include_router(module_router, prefix=API_PREFIX)
+
+for module_router in (
     products_router,
     categories_router,
     stock_router,
     sales_router,
     reports_router,
     catalog_router,
-    admin_router,
 ):
-    app.include_router(module_router, prefix=API_PREFIX)
+    app.include_router(module_router, prefix=FLORIST_PREFIX)
 
 
 @app.exception_handler(DomainError)

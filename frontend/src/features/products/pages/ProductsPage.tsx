@@ -149,6 +149,7 @@ export default function ProductsPage() {
           <ProductCard
             key={producto.id}
             product={producto}
+            currency={user?.currency}
             canManage={canManage}
             stockBusy={stockEnCurso === producto.id}
             onEdit={(p) => setModal({ abierto: true, producto: p })}
@@ -188,6 +189,7 @@ export default function ProductsPage() {
       {modal.abierto ? (
         <ProductFormModal
           product={modal.producto}
+          currency={user?.currency}
           onClose={() => setModal({ abierto: false, producto: null })}
           onSaved={() => {
             setModal({ abierto: false, producto: null });

@@ -18,10 +18,12 @@ const MAX_FOTO_BYTES = 3 * 1024 * 1024;
 // Formulario modal para crear o editar un producto, con foto y vista previa
 export default function ProductFormModal({
   product,
+  currency = "COP",
   onClose,
   onSaved,
 }: {
   product: Product | null;
+  currency?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -145,7 +147,7 @@ export default function ProductFormModal({
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Precio (COP)"
+                label={`Precio (${currency ?? "COP"})`}
                 value={precio}
                 onChange={(e) => setPrecio(e.target.value)}
                 placeholder="25000"

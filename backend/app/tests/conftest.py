@@ -22,7 +22,7 @@ from app.core.security import hash_password  # noqa: E402
 from app.main import app  # noqa: E402  (importa todos los modelos)
 from app.modules.auth.models import User, UserRole  # noqa: E402
 from app.modules.products.models import Product  # noqa: E402
-from app.modules.tenants.models import Tenant, TenantStatus  # noqa: E402
+from app.modules.tenants.models import App, Tenant, TenantApp, TenantStatus  # noqa: E402
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
@@ -61,6 +61,11 @@ def _preparar_base() -> Generator[None, None, None]:
     _crear_base_si_falta()
     _limpiar_esquema()
     Base.metadata.create_all(bind=engine)
+    # Apps disponibles (como la migración de datos en desarrollo)
+    with TestingSessionLocal() as sesion:
+        if sesion.get(App, "florist") is None:
+            sesion.add(App(code="florist", name="Florerías"))
+            sesion.commit()
     yield
     _limpiar_esquema()
     engine.dispose()
@@ -105,13 +110,15 @@ PASSWORD = "clave1234"
 
 @pytest.fixture
 def crear_local(db: Session) -> Callable[..., Tenant]:
-    """Crea un local (tenant) y lo deja disponible en la sesión de prueba."""
+    """Crea un local (tenant) con la app florist contratada (plan inventario)."""
 
     def _crear(
         nombre: str, slug: str, status: TenantStatus = TenantStatus.ACTIVE
     ) -> Tenant:
         tenant = Tenant(name=nombre, slug=slug, status=status)
         db.add(tenant)
+        db.flush()
+        db.add(TenantApp(tenant_id=tenant.id, app_code="florist", plan="inventario"))
         db.flush()
         return tenant
 

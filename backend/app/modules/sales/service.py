@@ -16,7 +16,7 @@ from app.modules.sales.schemas import SaleCreate
 from app.modules.stock.models import StockMovement
 from app.shared.errors import DomainError, NotFoundError
 
-# Los días del filtro se entienden en la zona horaria de los reportes
+# Si nadie indica otra, los días del filtro se entienden en Bogotá
 BOGOTA = ZoneInfo("America/Bogota")
 
 
@@ -90,9 +90,9 @@ def items_of_sale(db: Session, sale_id: int) -> list[SaleItem]:
     )
 
 
-def _inicio_dia(dia: date) -> datetime:
-    """Medianoche de ese día en Bogotá (con zona horaria)."""
-    return datetime(dia.year, dia.month, dia.day, tzinfo=BOGOTA)
+def _inicio_dia(dia: date, tz: ZoneInfo) -> datetime:
+    """Medianoche de ese día en la zona horaria indicada (con zona horaria)."""
+    return datetime(dia.year, dia.month, dia.day, tzinfo=tz)
 
 
 def list_sales(
@@ -101,16 +101,18 @@ def list_sales(
     *,
     desde: date | None = None,
     hasta: date | None = None,
+    tz: ZoneInfo = BOGOTA,
 ) -> list[tuple[Sale, list[SaleItem]]]:
     """Ventas del local, del `hasta` hacia atrás; cada una con sus items.
 
-    Las fechas son días calendario en Bogotá e incluyen ambos extremos.
+    Las fechas son días calendario en la zona horaria del local e incluyen ambos
+    extremos.
     """
     condiciones = [Sale.tenant_id == tenant_id]
     if desde is not None:
-        condiciones.append(Sale.created_at >= _inicio_dia(desde))
+        condiciones.append(Sale.created_at >= _inicio_dia(desde, tz))
     if hasta is not None:
-        condiciones.append(Sale.created_at < _inicio_dia(hasta + timedelta(days=1)))
+        condiciones.append(Sale.created_at < _inicio_dia(hasta + timedelta(days=1), tz))
 
     sales = list(
         db.scalars(select(Sale).where(*condiciones).order_by(Sale.id.desc()))

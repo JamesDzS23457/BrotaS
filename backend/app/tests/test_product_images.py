@@ -78,7 +78,7 @@ def test_owner_sube_foto_y_queda_en_webp_de_1200(
     producto = crear_producto(local.id, "Rosa roja")
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("foto.png", _foto(ancho=2000, alto=1500), "image/png")},
         headers=cabeceras,
     )
@@ -105,7 +105,7 @@ def test_archivo_que_no_es_imagen_da_400(
     producto = crear_producto(local.id, "Rosa roja")
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("foto.png", "no soy una foto".encode(), "image/png")},
         headers=cabeceras,
     )
@@ -125,7 +125,7 @@ def test_foto_muy_grande_da_413(
     producto = crear_producto(local.id, "Rosa roja")
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("grande.png", _foto_ruidosa(), "image/png")},
         headers=cabeceras,
     )
@@ -145,11 +145,11 @@ def test_reemplazar_borra_la_foto_anterior_nuestra(
     producto = crear_producto(local.id, "Rosa roja")
     vieja = f"https://cuenta.blob.core.windows.net/productos/{local.id}/vieja.webp"
     client.patch(
-        f"/api/v1/products/{producto.id}", json={"image_url": vieja}, headers=cabeceras
+        f"/api/v1/florist/products/{producto.id}", json={"image_url": vieja}, headers=cabeceras
     )
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("nueva.png", _foto(), "image/png")},
         headers=cabeceras,
     )
@@ -176,13 +176,13 @@ def test_foto_anterior_externa_no_se_borra(
     local, cabeceras = local_dueno
     producto = crear_producto(local.id, "Rosa roja")
     client.patch(
-        f"/api/v1/products/{producto.id}",
+        f"/api/v1/florist/products/{producto.id}",
         json={"image_url": "https://ejemplo.com/foto.jpg"},
         headers=cabeceras,
     )
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("nueva.png", _foto(), "image/png")},
         headers=cabeceras,
     )
@@ -210,7 +210,7 @@ def test_sin_azure_configurado_da_503(
     producto = crear_producto(local.id, "Rosa roja")
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("foto.png", _foto(), "image/png")},
         headers=cabeceras,
     )
@@ -232,7 +232,7 @@ def test_staff_no_puede_subir_foto(
     producto = crear_producto(local.id, "Rosa roja")
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("foto.png", _foto(), "image/png")},
         headers=autenticar("empleada@floreria.co"),
     )
@@ -258,7 +258,7 @@ def test_foto_de_otro_local_da_404(
 
     assert (
         client.post(
-            f"/api/v1/products/{producto.id}/image",
+            f"/api/v1/florist/products/{producto.id}/image",
             files={"file": ("foto.png", _foto(), "image/png")},
             headers=cabeceras_b,
         ).status_code
@@ -266,7 +266,7 @@ def test_foto_de_otro_local_da_404(
     )
     assert (
         client.post(
-            "/api/v1/products/999999/image",
+            "/api/v1/florist/products/999999/image",
             files={"file": ("foto.png", _foto(), "image/png")},
             headers=cabeceras_b,
         ).status_code
@@ -286,7 +286,7 @@ def test_subir_sin_token_da_401(
     producto = crear_producto(local.id, "Rosa roja")
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/image",
+        f"/api/v1/florist/products/{producto.id}/image",
         files={"file": ("foto.png", _foto(), "image/png")},
     )
 

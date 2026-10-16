@@ -8,6 +8,7 @@ from app.core.security import create_access_token
 from app.modules.auth.models import User
 from app.modules.auth.schemas import LoginRequest, TokenResponse, UserProfile
 from app.modules.auth.service import authenticate
+from app.modules.tenants.models import Tenant
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,6 +27,15 @@ def login(data: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
 
 
 @router.get("/me", response_model=UserProfile)
-def read_profile(current_user: User = Depends(get_current_user)) -> User:
+def read_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> UserProfile:
     """Devuelve los datos del usuario autenticado (para mostrar su correo)."""
-    return current_user
+    perfil = UserProfile.model_validate(current_user)
+    if current_user.tenant_id is not None:
+        local = db.get(Tenant, current_user.tenant_id)
+        if local is not None:
+            perfil.currency = local.currency
+            perfil.timezone = local.timezone
+    return perfil

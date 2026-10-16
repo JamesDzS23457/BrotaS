@@ -13,6 +13,7 @@ export default function CartPanel({
   lines,
   payment,
   saving,
+  currency = "COP",
   onQuantity,
   onRemove,
   onPayment,
@@ -21,6 +22,7 @@ export default function CartPanel({
   lines: CartLine[];
   payment: PaymentMethod;
   saving: boolean;
+  currency?: string | null;
   onQuantity: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
   onPayment: (payment: PaymentMethod) => void;
@@ -44,7 +46,7 @@ export default function CartPanel({
             <li key={linea.product.id} className="flex items-center gap-3 py-3">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-ink">{linea.product.name}</p>
-                <p className="text-xs text-bark">{formatCOP(linea.product.price)} c/u</p>
+                <p className="text-xs text-bark">{formatCOP(linea.product.price, currency)} c/u</p>
               </div>
               <div role="group" aria-label={`Cantidad de ${linea.product.name}`} className="flex items-center gap-1">
                 <button
@@ -71,7 +73,7 @@ export default function CartPanel({
                 </button>
               </div>
               <p className="w-20 text-right text-sm font-bold tabular-nums text-ink">
-                {formatCOP(Number(linea.product.price) * linea.quantity)}
+                {formatCOP(Number(linea.product.price) * linea.quantity, currency)}
               </p>
             </li>
           ))}
@@ -81,7 +83,7 @@ export default function CartPanel({
       <div className="mt-4 flex items-baseline justify-between border-t border-mist pt-4">
         <span className="text-sm font-medium text-bark">Total</span>
         <span aria-live="polite" className="font-display text-2xl font-bold text-ink">
-          {formatCOP(total)}
+          {formatCOP(total, currency)}
         </span>
       </div>
 

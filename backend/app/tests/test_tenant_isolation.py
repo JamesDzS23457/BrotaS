@@ -25,8 +25,8 @@ def test_un_local_no_ve_los_productos_de_otro(
     crear_producto(local_a.id, "Tulipán")
     crear_producto(local_b.id, "Girasol")
 
-    datos_a = client.get("/api/v1/products", headers=autenticar("ana@floreria-a.co")).json()
-    datos_b = client.get("/api/v1/products", headers=autenticar("beto@floreria-b.co")).json()
+    datos_a = client.get("/api/v1/florist/products", headers=autenticar("ana@floreria-a.co")).json()
+    datos_b = client.get("/api/v1/florist/products", headers=autenticar("beto@floreria-b.co")).json()
 
     assert {p["name"] for p in datos_a["items"]} == {"Rosa roja", "Tulipán"}
     assert {p["name"] for p in datos_b["items"]} == {"Girasol"}
@@ -49,7 +49,7 @@ def test_local_suspendido_recibe_403(
     crear_usuario("dueno@susp.co", suspendido.id)
     crear_producto(suspendido.id, "Clavel")
 
-    respuesta = client.get("/api/v1/products", headers=autenticar("dueno@susp.co"))
+    respuesta = client.get("/api/v1/florist/products", headers=autenticar("dueno@susp.co"))
 
     assert respuesta.status_code == 403
     assert "suspendido" in respuesta.json()["detail"].lower()
@@ -63,7 +63,7 @@ def test_usuario_sin_local_recibe_403(
     """El superadmin (sin local) no accede a endpoints de negocio."""
     crear_usuario("root@plataforma.co", None)
 
-    respuesta = client.get("/api/v1/products", headers=autenticar("root@plataforma.co"))
+    respuesta = client.get("/api/v1/florist/products", headers=autenticar("root@plataforma.co"))
 
     assert respuesta.status_code == 403
     assert "local" in respuesta.json()["detail"].lower()
@@ -71,7 +71,7 @@ def test_usuario_sin_local_recibe_403(
 
 def test_sin_token_recibe_401(client: TestClient) -> None:
     """Sin token no se puede llamar un endpoint protegido."""
-    assert client.get("/api/v1/products").status_code == 401
+    assert client.get("/api/v1/florist/products").status_code == 401
 
 
 def test_staff_puede_leer_pero_no_escribir_en_categorias(
@@ -85,13 +85,13 @@ def test_staff_puede_leer_pero_no_escribir_en_categorias(
     crear_usuario("empleada@staff.co", local.id, UserRole.STAFF)
     cabeceras = autenticar("empleada@staff.co")
 
-    assert client.get("/api/v1/categories", headers=cabeceras).status_code == 200
+    assert client.get("/api/v1/florist/categories", headers=cabeceras).status_code == 200
     assert (
-        client.post("/api/v1/categories", json={"name": "Ramos"}, headers=cabeceras).status_code
+        client.post("/api/v1/florist/categories", json={"name": "Ramos"}, headers=cabeceras).status_code
         == 403
     )
     assert (
-        client.patch("/api/v1/categories/1", json={"name": "Otro"}, headers=cabeceras).status_code
+        client.patch("/api/v1/florist/categories/1", json={"name": "Otro"}, headers=cabeceras).status_code
         == 403
     )
-    assert client.delete("/api/v1/categories/1", headers=cabeceras).status_code == 403
+    assert client.delete("/api/v1/florist/categories/1", headers=cabeceras).status_code == 403

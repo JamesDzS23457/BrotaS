@@ -18,6 +18,8 @@ export interface UserProfile {
   email: string;
   tenant_id: number | null;
   role: string;
+  currency: string | null;
+  timezone: string | null;
 }
 
 export function getProfile(): Promise<UserProfile> {

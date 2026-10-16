@@ -27,3 +27,5 @@ class UserProfile(BaseModel):
     email: str
     tenant_id: int | None
     role: UserRole
+    currency: str | None = None
+    timezone: str | None = None

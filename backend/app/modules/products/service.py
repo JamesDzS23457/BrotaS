@@ -19,6 +19,7 @@ from app.modules.products.schemas import (
     ProductCreate,
     ProductUpdate,
 )
+from app.modules.tenants.service import has_feature
 from app.shared.errors import (
     ConflictError,
     DomainError,
@@ -192,6 +193,8 @@ def get_product(db: Session, tenant_id: int, product_id: int) -> Product:
 
 def create_product(db: Session, tenant_id: int, data: ProductCreate) -> Product:
     """Crea un producto. El stock nace en cero y lo mueve el módulo stock."""
+    if data.is_published and not has_feature(db, tenant_id, "pagina"):
+        raise DomainError("El plan de este local no incluye página pública")
     _verificar_categoria(db, tenant_id, data.category_id)
 
     product = Product(
@@ -214,6 +217,8 @@ def update_product(
     product = get_product(db, tenant_id, product_id)
     cambios = data.model_dump(exclude_unset=True)
 
+    if cambios.get("is_published") and not has_feature(db, tenant_id, "pagina"):
+        raise DomainError("El plan de este local no incluye página pública")
     if "category_id" in cambios:
         _verificar_categoria(db, tenant_id, cambios["category_id"])
     for campo in ("description", "image_url"):

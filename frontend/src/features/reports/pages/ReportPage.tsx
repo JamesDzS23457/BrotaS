@@ -5,14 +5,16 @@ import { ApiError } from "../../../shared/api/client";
 import Button from "../../../shared/components/Button";
 import { formatCOP } from "../../../shared/format";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { getDailyReport, hoyBogota, type DailyReport } from "../api/reports";
+import { getDailyReport, hoyEnZona, type DailyReport } from "../api/reports";
 
 // Reporte del día: fecha, totales, más vendidos y stock bajo
 export default function ReportPage() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const zona = user?.timezone ?? "America/Bogota";
+  const moneda = user?.currency ?? "COP";
 
-  const [fecha, setFecha] = useState(hoyBogota);
+  const [fecha, setFecha] = useState(() => hoyEnZona(zona));
   const [reporte, setReporte] = useState<DailyReport | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +57,7 @@ export default function ReportPage() {
             id="fecha"
             type="date"
             value={fecha}
-            max={hoyBogota()}
+            max={hoyEnZona(zona)}
             onChange={(e) => {
               if (!e.target.value) return;
               setCargando(true);
@@ -82,7 +84,7 @@ export default function ReportPage() {
             <section aria-label="Total vendido" className="rounded-xl border border-mist bg-white p-5">
               <p className="text-sm font-medium text-bark">Total vendido</p>
               <p className="mt-1 font-display text-3xl font-bold text-ink">
-                {formatCOP(reporte.total_sold)}
+                {formatCOP(reporte.total_sold, moneda)}
               </p>
             </section>
             <section aria-label="Número de ventas" className="rounded-xl border border-mist bg-white p-5">
@@ -111,7 +113,7 @@ export default function ReportPage() {
                         <p className="truncate text-sm font-semibold text-ink">{item.name}</p>
                         <p className="text-xs text-bark">{item.quantity} unidad(es)</p>
                       </div>
-                      <p className="text-sm font-bold tabular-nums text-ink">{formatCOP(item.revenue)}</p>
+                      <p className="text-sm font-bold tabular-nums text-ink">{formatCOP(item.revenue, moneda)}</p>
                     </li>
                   ))}
                 </ol>

@@ -18,15 +18,24 @@ export interface DailyReport {
 }
 
 export function getDailyReport(fechaISO: string): Promise<DailyReport> {
-  return apiClient<DailyReport>(`/reports/daily?date=${encodeURIComponent(fechaISO)}`);
+  return apiClient<DailyReport>(`/florist/reports/daily?date=${encodeURIComponent(fechaISO)}`);
 }
 
-// Hoy en Bogotá (el backend entiende los días en esa zona horaria)
-export function hoyBogota(): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Bogota",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+// Hoy en la zona horaria del local (el backend entiende los días en esa zona)
+export function hoyEnZona(zonaHoraria = "America/Bogota"): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: zonaHoraria,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  } catch {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Bogota",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  }
 }

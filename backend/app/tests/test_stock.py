@@ -48,7 +48,7 @@ def test_sumar_stock_con_compra(
     producto = crear_producto(local.id, "Rosa roja", stock=5)
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/stock",
+        f"/api/v1/florist/products/{producto.id}/stock",
         json={"change": 3, "reason": "compra"},
         headers=cabeceras,
     )
@@ -78,12 +78,12 @@ def test_restar_stock_con_perdida_y_ajuste(
     producto = crear_producto(local.id, "Rosa roja", stock=10)
 
     perdida = client.post(
-        f"/api/v1/products/{producto.id}/stock",
+        f"/api/v1/florist/products/{producto.id}/stock",
         json={"change": -2, "reason": "pérdida"},
         headers=cabeceras,
     )
     ajuste = client.post(
-        f"/api/v1/products/{producto.id}/stock",
+        f"/api/v1/florist/products/{producto.id}/stock",
         json={"change": -8, "reason": "ajuste"},
         headers=cabeceras,
     )
@@ -106,7 +106,7 @@ def test_no_permite_stock_negativo(
     producto = crear_producto(local.id, "Rosa roja", stock=3)
 
     respuesta = client.post(
-        f"/api/v1/products/{producto.id}/stock",
+        f"/api/v1/florist/products/{producto.id}/stock",
         json={"change": -4, "reason": "pérdida"},
         headers=cabeceras,
     )
@@ -131,7 +131,7 @@ def test_cantidad_cero_y_motivo_invalido(
 
     assert (
         client.post(
-            f"/api/v1/products/{producto.id}/stock",
+            f"/api/v1/florist/products/{producto.id}/stock",
             json={"change": 0, "reason": "ajuste"},
             headers=cabeceras,
         ).status_code
@@ -139,7 +139,7 @@ def test_cantidad_cero_y_motivo_invalido(
     )
     assert (
         client.post(
-            f"/api/v1/products/{producto.id}/stock",
+            f"/api/v1/florist/products/{producto.id}/stock",
             json={"change": 1, "reason": "robo"},
             headers=cabeceras,
         ).status_code
@@ -162,12 +162,12 @@ def test_stock_de_otro_local_da_404(
 
     assert (
         client.post(
-            f"/api/v1/products/{producto.id}/stock", json=cuerpo, headers=cabeceras_b
+            f"/api/v1/florist/products/{producto.id}/stock", json=cuerpo, headers=cabeceras_b
         ).status_code
         == 404
     )
     assert (
-        client.post("/api/v1/products/999999/stock", json=cuerpo, headers=cabeceras_b).status_code
+        client.post("/api/v1/florist/products/999999/stock", json=cuerpo, headers=cabeceras_b).status_code
         == 404
     )
 
@@ -187,13 +187,13 @@ def test_staff_no_mueve_stock_pero_si_lee(
 
     assert (
         client.post(
-            f"/api/v1/products/{producto.id}/stock",
+            f"/api/v1/florist/products/{producto.id}/stock",
             json={"change": 1, "reason": "compra"},
             headers=cabeceras,
         ).status_code
         == 403
     )
-    assert client.get("/api/v1/products/low-stock", headers=cabeceras).status_code == 200
+    assert client.get("/api/v1/florist/products/low-stock", headers=cabeceras).status_code == 200
 
 
 def test_mover_sin_token_da_401(
@@ -207,12 +207,12 @@ def test_mover_sin_token_da_401(
 
     assert (
         client.post(
-            f"/api/v1/products/{producto.id}/stock",
+            f"/api/v1/florist/products/{producto.id}/stock",
             json={"change": 1, "reason": "compra"},
         ).status_code
         == 401
     )
-    assert client.get("/api/v1/products/low-stock").status_code == 401
+    assert client.get("/api/v1/florist/products/low-stock").status_code == 401
 
 
 def test_low_stock_lista_solo_lo_que_esta_bajo_minimo(
@@ -231,7 +231,7 @@ def test_low_stock_lista_solo_lo_que_esta_bajo_minimo(
     crear_producto(local.id, "Rosa vieja", stock=0, min_stock=5, is_active=False)  # inactiva: no entra
     crear_producto(otro.id, "Rosa ajena", stock=0, min_stock=5)  # otro local: no entra
 
-    respuesta = client.get("/api/v1/products/low-stock", headers=cabeceras)
+    respuesta = client.get("/api/v1/florist/products/low-stock", headers=cabeceras)
 
     assert respuesta.status_code == 200
     assert [p["name"] for p in respuesta.json()] == ["Rosa baja", "Rosa justa"]
@@ -251,7 +251,7 @@ def test_cada_movimiento_suma_y_el_historial_cuadra(
 
     for change, reason in ((10, "compra"), (-3, "pérdida"), (1, "ajuste")):
         r = client.post(
-            f"/api/v1/products/{producto.id}/stock",
+            f"/api/v1/florist/products/{producto.id}/stock",
             json={"change": change, "reason": reason},
             headers=cabeceras,
         )
