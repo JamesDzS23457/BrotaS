@@ -23,6 +23,8 @@ from app.modules.products.schemas import (
     ProductPage,
     ProductUpdate,
 )
+from app.modules.stock import service as stock_service
+from app.modules.stock.schemas import StockMove, StockMovementOut
 
 router = APIRouter(prefix="/products", tags=["products"])
 categories_router = APIRouter(prefix="/categories", tags=["categories"])
@@ -67,6 +69,18 @@ def create_product(
 ) -> Product:
     """Crea un producto en el local. Solo el dueño."""
     return service.create_product(db, tenant_id, data)
+
+
+@router.get("/low-stock", response_model=list[ProductOut])
+def read_low_stock(
+    tenant_id: int = Depends(get_tenant_id),
+    db: Session = Depends(get_db),
+) -> list[Product]:
+    """Lista los productos activos con stock menor o igual a su mínimo.
+
+    Va antes de `/{product_id}` a propósito: si no, "low-stock" caería en esa ruta.
+    """
+    return stock_service.list_low_stock(db, tenant_id)
 
 
 @router.get("/{product_id}", response_model=ProductOut)
@@ -114,6 +128,28 @@ async def upload_product_image(
     en Azure. Si había otra foto nuestra, se borra. Solo el dueño."""
     contenido = await file.read()
     return service.set_product_image(db, tenant_id, product_id, contenido)
+
+
+@router.post("/{product_id}/stock", response_model=StockMovementOut)
+def move_product_stock(
+    product_id: int,
+    data: StockMove,
+    tenant_id: int = Depends(get_tenant_id),
+    current_user: User = Depends(require_role(UserRole.OWNER)),
+    db: Session = Depends(get_db),
+) -> StockMovementOut:
+    """Suma o resta stock con un motivo y registra el movimiento. Solo el dueño."""
+    movement, nuevo = stock_service.move_stock(
+        db, tenant_id, product_id, current_user.id, data
+    )
+    return StockMovementOut(
+        id=movement.id,
+        product_id=movement.product_id,
+        quantity_change=movement.quantity_change,
+        reason=movement.reason,
+        created_at=movement.created_at,
+        stock_after=nuevo,
+    )
 
 
 # ------------------------------------------------------------------ categorías

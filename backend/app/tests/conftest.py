@@ -150,6 +150,7 @@ def crear_producto(db: Session) -> Callable[..., Product]:
         precio: int = 1000,
         category_id: int | None = None,
         stock: int = 0,
+        min_stock: int = 0,
         is_active: bool = True,
     ) -> Product:
         product = Product(
@@ -160,7 +161,7 @@ def crear_producto(db: Session) -> Callable[..., Product]:
             category_id=category_id,
             is_active=is_active,
             is_published=False,
-            min_stock=0,
+            min_stock=min_stock,
         )
         db.add(product)
         db.flush()
