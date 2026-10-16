@@ -9,6 +9,29 @@ export default function Bouquet({ className = "" }: { className?: string }) {
       aria-hidden="true"
       preserveAspectRatio="xMidYMax meet"
     >
+      <defs>
+        <radialGradient id="brota-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#1d5c3f" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#1d5c3f" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Resplandor detrás del ramo: separa al ramo del fondo */}
+      <ellipse cx="450" cy="370" rx="370" ry="300" fill="url(#brota-glow)" />
+
+      {/* Follaje lejano, más oscuro que el fondo, para dar profundidad */}
+      <g fill="#0b2319">
+        <path d="M-420 660C-400 540-300 460-80 430C-110 555-230 625-420 660Z" />
+        <path d="M-300 660C-280 495-140 390 110 350C90 500-60 610-300 660Z" />
+        <path d="M210 660C255 588 355 545 500 528C480 605 355 648 210 660Z" />
+        <path d="M690 660C645 588 545 545 400 528C420 605 545 648 690 660Z" />
+        <path d="M1200 660C1180 495 1040 390 790 350C810 500 960 610 1200 660Z" />
+        <path d="M1320 660C1300 540 1200 460 980 430C1010 555 1130 625 1320 660Z" />
+      </g>
+
+      {/* Sombra de contacto del balde */}
+      <ellipse cx="450" cy="622" rx="135" ry="11" fill="#07180f" opacity="0.35" />
+
       <g className="bouquet-sway">
         {/* Tallos, hojas y ramitas: brotan desde la boca del balde */}
         <g className="bouquet-stems">

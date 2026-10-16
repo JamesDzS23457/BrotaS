@@ -87,6 +87,10 @@ npm run dev
   desde `index.html`. Si no hay red, el navegador usa la fuente del sistema.
 - `src/shared/components/LogoMark.tsx` (una marca con pimpollo de rosa) y `Bouquet.tsx` (el ramo
   del login: balde, rosa, crisantemo, tulipán y gypsófila, con entrada y vaivén suaves).
+- El panel del login usa la clase `.scene` (en `index.css`): luz de invernadero desde arriba, dos
+  rayos suaves y follaje lejano que da profundidad. Todo es SVG/CSS, sin imágenes externas.
+- El diseño es *mobile first* con Tailwind (no Bootstrap): `sm:`/`lg:` en orden ascendente, grid y
+  flex, `min-w-0`/`truncate` y anchos máximos para que nada se desborde en celular.
 - Toda la interfaz respeta foco visible, `prefers-reduced-motion`, etiquetas de formulario y
   enlaces altos de contraste.
 

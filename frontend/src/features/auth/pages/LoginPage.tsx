@@ -48,7 +48,7 @@ export default function LoginPage() {
       </a>
 
       {/* Panel de marca */}
-      <section className="relative overflow-hidden px-6 pt-8 pb-48 sm:px-10 lg:flex lg:flex-col lg:px-14 lg:py-12">
+      <section className="scene relative overflow-hidden px-6 pt-8 pb-48 sm:px-10 lg:flex lg:flex-col lg:px-14 lg:py-12">
         <div className="relative z-10 flex items-center gap-2.5 text-paper">
           <LogoMark className="h-9 w-9" />
           <p className="font-display text-2xl font-semibold tracking-tight">{PLATFORM_NAME}</p>

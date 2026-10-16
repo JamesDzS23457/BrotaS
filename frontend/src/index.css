@@ -71,6 +71,16 @@
   transform: translateY(0);
 }
 
+/* Luz de invernadero: dos rayos suaves y un resplandor desde arriba */
+.scene {
+  background-color: var(--color-forest);
+  background-image:
+    linear-gradient(118deg, transparent 30%, rgb(255 255 255 / 0.07) 40%, transparent 49%),
+    linear-gradient(118deg, transparent 58%, rgb(255 255 255 / 0.045) 68%, transparent 78%),
+    radial-gradient(130% 95% at 50% -12%, #21603f 0%, #16402999 42%, transparent 100%),
+    radial-gradient(130% 95% at 50% -12%, #1f5941 0%, #163e2a 42%, var(--color-forest) 100%);
+}
+
 /* El ramo: una sola secuencia de entrada (el balde entra, los tallos brotan, las flores abren) y luego un vaivén suave */
 @keyframes brota-vase {
   from {
