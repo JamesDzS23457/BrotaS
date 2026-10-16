@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const { user, logout } = useAuth();
 
   const datos = [
-    { etiqueta: "Usuario", valor: user?.id ?? "—" },
+    { etiqueta: "Correo", valor: user?.email ?? "—" },
     { etiqueta: "Rol", valor: user ? (ROLE_LABELS[user.role] ?? user.role) : "—" },
     { etiqueta: "Local", valor: user?.tenantId ?? "—" },
   ];
@@ -53,7 +53,7 @@ export default function DashboardPage() {
               className="flex items-baseline justify-between gap-4 px-5 py-4"
             >
               <dt className="text-sm text-bark">{dato.etiqueta}</dt>
-              <dd className="font-semibold text-ink tabular-nums">{dato.valor}</dd>
+              <dd className="min-w-0 break-all font-semibold text-ink">{dato.valor}</dd>
             </div>
           ))}
         </dl>

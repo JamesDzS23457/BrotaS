@@ -1,5 +1,7 @@
 """Esquemas del módulo auth (usuarios y login)."""
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+from app.modules.auth.models import UserRole
 
 
 class LoginRequest(BaseModel):
@@ -14,3 +16,14 @@ class TokenResponse(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+
+
+class UserProfile(BaseModel):
+    """Datos del usuario autenticado."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    tenant_id: int | None
+    role: UserRole

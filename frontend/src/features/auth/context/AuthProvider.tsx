@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { clearToken, getToken, setToken } from "../../../shared/api/client";
 import { decodeToken } from "../../../shared/api/jwt";
-import { login as loginRequest } from "../api/auth";
+import { getProfile, login as loginRequest } from "../api/auth";
 import { AuthContext, type AuthContextValue, type AuthUser } from "./auth-context";
 
 function userFromToken(token: string | null): AuthUser | null {
@@ -10,7 +10,7 @@ function userFromToken(token: string | null): AuthUser | null {
   const payload = decodeToken(token);
   if (!payload) return null;
   if (payload.exp * 1000 <= Date.now()) return null;
-  return { id: payload.user_id, tenantId: payload.tenant_id, role: payload.role };
+  return { id: payload.user_id, tenantId: payload.tenant_id, role: payload.role, email: null };
 }
 
 // Provider de autenticación: guarda el token y el usuario en sesión
@@ -20,6 +20,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!usuario) clearToken(); // token inválido o vencido
     return usuario;
   });
+
+  // El correo no viaja en el token: se pide una sola vez al perfil
+  useEffect(() => {
+    let activo = true;
+    if (user && user.email === null) {
+      getProfile()
+        .then((perfil) => {
+          if (activo) {
+            setUser((actual) => (actual ? { ...actual, email: perfil.email } : actual));
+          }
+        })
+        .catch(() => {
+          // Sin red o sin permiso: se muestra "—" en vez del correo
+        });
+    }
+    return () => {
+      activo = false;
+    };
+  }, [user]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginRequest(email, password);

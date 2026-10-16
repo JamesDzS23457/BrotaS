@@ -12,3 +12,14 @@ export function login(email: string, password: string): Promise<LoginResponse> {
     body: { email, password },
   });
 }
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  tenant_id: number | null;
+  role: string;
+}
+
+export function getProfile(): Promise<UserProfile> {
+  return apiClient<UserProfile>("/auth/me");
+}
