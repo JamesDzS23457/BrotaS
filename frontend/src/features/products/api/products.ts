@@ -61,10 +61,16 @@ function query(params: Record<string, string | number | undefined>): string {
 
 export function listProducts(opciones: {
   search?: string;
+  category_id?: number;
   page?: number;
   page_size?: number;
 }): Promise<ProductPage> {
   return apiClient<ProductPage>(`/florist/products${query(opciones)}`);
+}
+
+// Productos activos con stock menor o igual a su mínimo (sin paginar)
+export function listLowStock(): Promise<Product[]> {
+  return apiClient<Product[]>("/florist/products/low-stock");
 }
 
 export function listCategories(): Promise<Category[]> {

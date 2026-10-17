@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+        "test:unit": "node --test src/shared/__tests__/*.test.mjs",
+            "test:ui": "node src/app/__tests__/design-smoke.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

@@ -81,21 +81,59 @@ npm run dev
 
 ### Identidad visual
 
-- Paleta y tipografías en `src/index.css` (Tailwind v4 `@theme`): verdes de tallo, acento
-  buganvilla y fondos fríos de invernadero.
-- Tipografías **Fraunces** (títulos) y **Hanken Grotesk** (interfaz), servidas por Google Fonts
-  desde `index.html`. Si no hay red, el navegador usa la fuente del sistema.
-- `src/shared/components/LogoMark.tsx`: la marca (un pimpollo de rosa).
-- El panel del login lleva una **fotografía** de floristería (`src/assets/hero-floristeria-1200.webp`
-  y `-700.webp`) con `srcset`, un acercamiento muy lento de fondo (`.photo-drift`) y una capa verde
-  de marca (`.photo-veil`) que garantiza el contraste del texto. Todo en `index.css`.
-- Crédito de la foto (**CC BY 2.0**, obligatorio): *Florist working on a bouquet of flowers* de
-  [direct2Florist](https://commons.wikimedia.org/wiki/File:Florist_working_on_a_bouquet_of_flowers.jpg),
-  vía Wikimedia Commons. El crédito aparece también en el pie del panel.
+- Paleta en `src/index.css` (Tailwind v4 `@theme`): blanco niebla, tinta azulada, petróleo,
+  lavanda y rosa floral. Estética de estudio floral contemporáneo, sin neón ni movimiento continuo.
+- Tipografías **Manrope** (títulos) y **Hanken Grotesk** (interfaz), alojadas localmente como
+  WOFF2 variables en `src/assets/`. Se precargan desde `index.html`; incluyen sus licencias SIL
+  Open Font License en `manrope-OFL.txt` y `hanken-grotesk-OFL.txt`. No se consulta Google Fonts.
+- `src/shared/components/LogoMark.tsx`: la marca (un pimpollo de rosa), con tonos coordinados.
+- El login usa una fotografía macro floral local (`src/assets/hero-floristeria-1200.webp`
+  y `-700.webp`, ~26 y ~13 KB), con `srcset`, dimensiones explícitas y velo para el contraste.
+- Procedencia: *Delicate pink flowers in close-up*, de **Aleksandar Radovanovic** (2015),
+  [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Delicate_pink_flowers_in_close-up_(Unsplash).jpg).
+  La ficha confirma **CC0 1.0 / dominio público**, publicada antes del cambio de licencia de Unsplash
+  de junio de 2017. Permite uso comercial y adaptación sin atribución obligatoria. Se redimensionó
+  y convirtió a WebP; no lleva marca de agua. La imagen anterior CC BY 2.0 ya no se utiliza.
 - El diseño es *mobile first* con Tailwind (no Bootstrap): `sm:`/`lg:` en orden ascendente, grid y
   flex, `min-w-0`/`truncate` y anchos máximos para que nada se desborde en celular.
 - Toda la interfaz respeta foco visible, `prefers-reduced-motion`, etiquetas de formulario y
   enlaces altos de contraste.
+
+### Pantallas y animaciones
+
+- **Login:** foto a pantalla completa con panel de cristal (celular: hoja que sube sobre la foto). Un solo
+  momento animado al abrir (la foto "florece", el titular sube por líneas); después solo paralaje
+  suave con el ratón. Todo se apaga con `prefers-reduced-motion`. Aviso de Bloq Mayús.
+- **Productos:** vista Tarjetas/Lista, filtro Stock bajo (usa `/florist/products/low-stock`), categoría,
+  búsqueda y página en la URL, aviso con Deshacer al ajustar stock y modal con `<dialog>` nativo.
+  Los precios se leen a la colombiana (`25.000` = 25000) con `parsePrecio` en `shared/format.ts`.
+- **Modal de producto:** valida cada campo antes de llamar a la API y muestra el error junto al campo
+  que falla (nombre, precio con máximo dos decimales y stock mínimo entero), con el foco en el primero;
+  si hay cambios sin guardar, al cerrar (Cancelar, Escape o clic afuera) pregunta antes de descartarlos.
+- **Ventas:** productos visibles sin teclear, carrito fijo en escritorio y barra de total en celular.
+- **Reporte:** atajos Hoy/Ayer, ticket promedio y barras por unidades vendidas.
+- Piezas compartidas en `shared/components`: PageHeader, EmptyState, Skeleton, Toast, Select, Textarea, Icon.
+
+### Prueba de interfaz
+
+```bash
+npm run build
+npm run lint
+npm run test:unit
+npm run test:ui
+```
+
+`test:ui` requiere Node.js 22+ y Chrome (`google-chrome-stable`, o la ruta en `CHROME_BIN`).
+No instala dependencias. Inicia Vite en `127.0.0.1:4173`, ejecuta Chrome headless con un perfil
+temporal y cierra ambos al terminar. La API se simula solo en ese navegador: no usa credenciales
+ni modifica datos reales. Comprueba login a 320/390/768/1024/1280/1440 px, Productos (tarjetas y lista, filtros,
+stock con Deshacer, modal), Ventas, Reporte, recursos locales, teclado,
+contraseña, carga/error y menú móvil (foco, Escape y cambio a escritorio). Del modal de producto revisa
+los errores por campo, el foco en el primer fallo y el aviso de cambios sin guardar. Guarda capturas en
+`dist/design-review/`, fuera del control de versiones; `npm run build` limpia esa carpeta.
+No sustituye las pruebas del backend, el aislamiento entre tenants ni una prueba de login real.
+Chrome mantiene su sandbox por defecto; solo en un entorno de pruebas aislado que lo requiera
+puede desactivarse explícitamente con `CHROME_NO_SANDBOX=1 npm run test:ui`.
 
 > El backend debe estar corriendo y con CORS para `http://localhost:5173` (ya viene configurado).
 

@@ -1,52 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../features/auth/hooks/useAuth";
+import Icono from "../../shared/components/Icon";
+import { ICON_PATHS as ICONOS } from "../../shared/components/icon-paths";
 import LogoMark from "../../shared/components/LogoMark";
 import { PLATFORM_NAME } from "../../shared/config";
-
-// Iconos propios en trazo (sin dependencias): paquete, carrito, barras, salir, menú y equis
-function Icono({ d, className = "h-5 w-5" }: { d: string | readonly string[]; className?: string }) {
-  const trazos = Array.isArray(d) ? d : [d];
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {trazos.map((trazo) => (
-        <path key={trazo} d={trazo} />
-      ))}
-    </svg>
-  );
-}
-
-const ICONOS = {
-  productos: [
-    "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z",
-    "m3.3 7 8.7 5 8.7-5",
-    "M12 22V12",
-  ],
-  ventas: [
-    "M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12",
-    "M8 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
-    "M19 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
-  ],
-  reporte: ["M3 3v16a2 2 0 0 0 2 2h16", "M7 13v4", "M12 9v8", "M17 5v12"],
-  salir: ["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", "m16 17 5-5-5-5", "M21 12H9"],
-  menu: ["M4 6h16", "M4 12h16", "M4 18h16"],
-  cerrar: ["M6 6l12 12", "M18 6 6 18"],
-} as const;
 
 interface Opcion {
   ruta: string;
   etiqueta: string;
-  icono: keyof typeof ICONOS;
+  icono: "productos" | "ventas" | "reporte";
   roles: string[];
 }
 
@@ -57,12 +21,23 @@ const OPCIONES: Opcion[] = [
   { ruta: "/reporte", etiqueta: "Reporte", icono: "reporte", roles: ["owner"] },
 ];
 
+const TITULOS: Record<string, string> = {
+  "/productos": "Productos",
+  "/ventas": "Nueva venta",
+  "/reporte": "Reporte del día",
+};
+
 // Panel del local: en celular es cabecera + cajón lateral; en escritorio, barra fija
 export default function PanelLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [cajon, setCajon] = useState(false);
-  const botonCerrar = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDialogElement>(null);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const location = useLocation();
+  const primeraRuta = useRef(true);
   const rol = user?.role ?? "";
   const opciones = OPCIONES.filter((opcion) => opcion.roles.includes(rol));
 
@@ -72,42 +47,65 @@ export default function PanelLayout() {
     navigate("/login", { replace: true });
   }
 
-  // Escape cierra el cajón y al abrirlo el foco cae en el botón de cerrar
   useEffect(() => {
-    if (!cajon) return;
-    botonCerrar.current?.focus();
+    const drawer = drawerRef.current;
+    if (!cajon || !drawer) return;
+
+    const desktop = window.matchMedia("(min-width: 64rem)");
+    const previousOverflow = document.body.style.overflow;
+    const main = mainRef.current;
+    const openButton = openButtonRef.current;
+    drawer.showModal();
+    closeButtonRef.current?.focus();
     document.body.style.overflow = "hidden";
-    function alTeclar(evento: KeyboardEvent) {
-      if (evento.key === "Escape") setCajon(false);
+
+    function handleResize(event: MediaQueryListEvent) {
+      if (event.matches) setCajon(false);
     }
-    document.addEventListener("keydown", alTeclar);
+
+    desktop.addEventListener("change", handleResize);
     return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", alTeclar);
+      desktop.removeEventListener("change", handleResize);
+      drawer.close();
+      document.body.style.overflow = previousOverflow;
+      // En escritorio el disparador está oculto: el foco vuelve al contenido.
+      const focusTarget = desktop.matches ? main : openButton;
+      focusTarget?.focus({ preventScroll: true });
     };
   }, [cajon]);
 
+  // Al cambiar de sección se actualiza el título de la pestaña y el foco pasa al contenido
+  useEffect(() => {
+    document.title = `${TITULOS[location.pathname] ?? "Panel"} — ${PLATFORM_NAME}`;
+    if (primeraRuta.current) {
+      primeraRuta.current = false;
+      return;
+    }
+    mainRef.current?.focus({ preventScroll: true });
+  }, [location.pathname]);
+
   const enlaces = (alElegir?: () => void) => (
     <nav aria-label="Secciones del panel">
-      <ul className="space-y-1">
+      <ul className="space-y-2">
         {opciones.map((opcion) => (
           <li key={opcion.ruta}>
             <NavLink
               to={opcion.ruta}
               onClick={alElegir}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.95rem] font-medium transition-colors ${
+                `flex min-h-12 items-center gap-3 rounded-xl border px-3.5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stem motion-reduce:transition-none ${
                   isActive
-                    ? "bg-forest text-paper"
-                    : "text-ink hover:bg-mist/60"
+                    ? "border-forest bg-forest text-paper"
+                    : "border-transparent text-bark hover:border-mist hover:bg-paper hover:text-ink"
                 }`
               }
             >
               {({ isActive }) => (
-                <span aria-current={isActive ? "page" : undefined} className="contents">
-                  <Icono d={[...ICONOS[opcion.icono]]} />
-                  {opcion.etiqueta}
-                </span>
+                <>
+                  <Icono d={ICONOS[opcion.icono]} />
+                  <span className="flex-1">{opcion.etiqueta}</span>
+                  {isActive && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-paper/80" />}
+                </>
               )}
             </NavLink>
           </li>
@@ -117,29 +115,60 @@ export default function PanelLayout() {
   );
 
   const marca = (
-    <div className="flex items-center gap-2.5">
-      <LogoMark className="h-7 w-7" />
-      <span className="font-display text-lg font-semibold text-ink">{PLATFORM_NAME}</span>
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-mist bg-paper text-forest">
+        <LogoMark className="h-7 w-7" />
+      </span>
+      <span translate="no" className="min-w-0 truncate font-display text-xl font-semibold tracking-tight text-ink">{PLATFORM_NAME}</span>
+    </div>
+  );
+
+  const workspace = (
+    <div className="mb-5 border-b border-mist pb-5">
+      <p className="text-xs text-bark">Tu espacio de trabajo</p>
+      <p className="mt-2 flex items-center gap-2 font-display text-sm font-semibold text-ink">
+        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-bloom" />
+        Florería
+      </p>
+    </div>
+  );
+
+  const account = (
+    <div className="mt-8 border-t border-mist pt-5">
+      <p className="px-3.5 text-xs text-bark">Sesión iniciada</p>
+      <p className="mt-1 truncate px-3.5 text-sm font-medium text-ink" title={user?.email ?? undefined}>
+        {user?.email ?? "Tu cuenta"}
+      </p>
+      <button
+        type="button"
+        onClick={salir}
+        className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-bark transition-colors hover:bg-paper hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stem motion-reduce:transition-none"
+      >
+        <Icono d={ICONOS.salir} />
+        Cerrar sesión
+      </button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="min-h-screen bg-paper font-sans text-ink lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
       <a className="skip-link" href="#contenido">
         Saltar al contenido
       </a>
 
       {/* Cabecera solo en celular */}
-      <header className="sticky top-0 z-30 border-b border-mist bg-white/95 backdrop-blur lg:hidden">
-        <div className="flex items-center justify-between gap-4 px-5 py-3.5">
+      <header className="sticky top-0 z-30 border-b border-mist bg-paper/95 backdrop-blur lg:hidden">
+        <div className="flex items-center justify-between gap-4 px-5 py-3">
           {marca}
           <button
+            ref={openButtonRef}
             type="button"
             onClick={() => setCajon(true)}
             aria-expanded={cajon}
+            aria-haspopup="dialog"
             aria-controls="cajon-panel"
             aria-label="Abrir menú"
-            className="rounded-lg p-2 text-ink hover:bg-mist/60"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-mist text-ink hover:bg-mist/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stem"
           >
             <Icono d={ICONOS.menu} className="h-6 w-6" />
           </button>
@@ -147,64 +176,57 @@ export default function PanelLayout() {
       </header>
 
       {/* Barra lateral fija solo en escritorio */}
-      <aside className="sticky top-0 hidden h-screen flex-col border-r border-mist bg-white px-4 py-6 lg:flex">
-        <div className="px-2">{marca}</div>
-        <div className="mt-8 flex-1">{enlaces()}</div>
-        <button
-          type="button"
-          onClick={salir}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[0.95rem] font-medium text-danger hover:bg-danger-soft"
-        >
-          <Icono d={[...ICONOS.salir]} />
-          Salir
-        </button>
+      <aside className="sticky top-0 hidden h-dvh flex-col overflow-y-auto border-r border-mist bg-white px-5 py-7 lg:flex">
+        <div className="px-1">{marca}</div>
+        <div className="mt-10 flex-1">
+          {workspace}
+          {enlaces()}
+        </div>
+        {account}
       </aside>
 
-      {/* Cajón lateral solo en celular */}
-      <div
-        className={cajon ? "lg:hidden" : "pointer-events-none lg:hidden"}
-        aria-hidden={!cajon}
+      {/* El dialog nativo mantiene el foco dentro e inhabilita el fondo. */}
+      <dialog
+        ref={drawerRef}
+        id="cajon-panel"
+        aria-label="Menú del panel"
+        aria-modal="true"
+        onCancel={(event) => {
+          event.preventDefault();
+          setCajon(false);
+        }}
+        onClose={() => setCajon(false)}
+        className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none border-0 bg-transparent p-0 text-ink backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
       >
-        <div
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Cerrar menú"
           onClick={() => setCajon(false)}
-          className={`fixed inset-0 z-40 bg-ink/50 transition-opacity ${
-            cajon ? "opacity-100" : "opacity-0"
-          }`}
+          className="absolute inset-0 h-full w-full cursor-default border-0 bg-transparent p-0"
         />
-        <div
-          id="cajon-panel"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menú del panel"
-          className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col bg-white px-4 py-6 shadow-xl transition-transform ${
-            cajon ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex items-center justify-between px-2">
+        <div className="relative flex h-full w-80 max-w-[88vw] flex-col overflow-y-auto overscroll-contain border-r border-mist bg-white px-5 py-6 shadow-xl">
+          <div className="flex items-center justify-between gap-2">
             {marca}
             <button
-              ref={botonCerrar}
+              ref={closeButtonRef}
               type="button"
               onClick={() => setCajon(false)}
               aria-label="Cerrar menú"
-              className="rounded-lg p-2 text-ink hover:bg-mist/60"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stem"
             >
-              <Icono d={ICONOS.cerrar} className="h-6 w-6" />
+              <Icono d={ICONOS.cerrar} className="h-5 w-5" />
             </button>
           </div>
-          <div className="mt-8 flex-1">{enlaces(() => setCajon(false))}</div>
-          <button
-            type="button"
-            onClick={salir}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[0.95rem] font-medium text-danger hover:bg-danger-soft"
-          >
-            <Icono d={[...ICONOS.salir]} />
-            Salir
-          </button>
+          <div className="mt-9 flex-1">
+            {workspace}
+            {enlaces(() => setCajon(false))}
+          </div>
+          {account}
         </div>
-      </div>
+      </dialog>
 
-      <main id="contenido" className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8">
+      <main ref={mainRef} id="contenido" tabIndex={-1} className="mx-auto w-full min-w-0 max-w-6xl px-5 py-8 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stem sm:px-8 lg:py-10">
         <Outlet />
       </main>
     </div>

@@ -1,19 +1,29 @@
 import { useId, type InputHTMLAttributes } from "react";
 
+import { fieldClasses } from "./field-styles";
+
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
+  hideLabel?: boolean;
 }
 
 // Campo de texto con etiqueta y error en línea
-export default function Input({ label, id, error, className = "", ...rest }: InputProps) {
+export default function Input({
+  label,
+  id,
+  error,
+  hideLabel = false,
+  className = "",
+  ...rest
+}: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const errorId = `${inputId}-error`;
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={inputId} className="block text-sm font-medium text-ink">
+      <label htmlFor={inputId} className={hideLabel ? "sr-only" : "block text-sm font-medium text-ink"}>
         {label}
       </label>
       <input
@@ -21,9 +31,7 @@ export default function Input({ label, id, error, className = "", ...rest }: Inp
         {...rest}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className={`block w-full rounded-lg border bg-white px-3 py-2.5 text-ink transition-colors duration-150 placeholder:text-bark/70 focus-visible:border-stem ${
-          error ? "border-danger" : "border-mist"
-        } ${className}`}
+        className={fieldClasses(Boolean(error), className)}
       />
       {error ? (
         <p id={errorId} className="text-sm text-danger">

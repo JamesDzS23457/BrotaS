@@ -1,28 +1,51 @@
 @import "tailwindcss";
 
-/* Identidad de Brota: invernadero frío. Nada de crema + terracota por defecto. */
+@font-face {
+  font-family: "Hanken Grotesk";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/hanken-grotesk-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/manrope-latin.woff2") format("woff2");
+}
+
+/* Estudio floral: superficies frías y acentos de los pétalos de la fotografía. */
 @theme {
-  --color-paper: #f3f6f1;
-  --color-ink: #10231a;
-  --color-forest: #0e2a1e;
-  --color-stem: #16804e;
-  --color-stem-strong: #0f663e;
-  --color-vine: #37906a;
-  --color-leaf: #2b7a58;
-  --color-bloom: #e0399a;
-  --color-mist: #ccdfd3;
-  --color-bark: #51675a;
+  --color-paper: #f4f7f8;
+  --color-ink: #20343d;
+  --color-forest: #244d59;
+  --color-stem: #326875;
+  --color-stem-strong: #244d59;
+  --color-vine: #62898b;
+  --color-leaf: #326875;
+  --color-bloom: #b86d88;
+  --color-mist: #d8e3e7;
+  --color-edge: #7f969f;
+  --color-bark: #546773;
   --color-danger: #a51c30;
   --color-danger-soft: #f8e7ea;
-
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   html {
     color-scheme: light;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: rgb(50 104 117 / 0.14);
+    scroll-padding-top: 6rem;
+    scroll-padding-bottom: 6rem;
+  }
+
+  /* Con un modal abierto la página de atrás no se desplaza */
+  html:has(dialog[open]) {
+    overflow: hidden;
   }
 
   body {
@@ -32,85 +55,352 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1,
-  h2,
-  h3 {
+  h1, h2, h3 {
     text-wrap: balance;
+    scroll-margin-top: 6rem;
   }
 
-  a,
-  button,
-  input,
-  label {
+  p { text-wrap: pretty; }
+
+  a, button, input, label, select, textarea {
     touch-action: manipulation;
   }
 
-  /* Un solo estilo de foco para todo lo interactivo */
+  button:not(:disabled), a { cursor: pointer; }
+
   :focus-visible {
     outline: 2px solid var(--color-stem);
-    outline-offset: 2px;
-    border-radius: 3px;
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    color: var(--color-ink);
+    background: #dcd7ec;
   }
 }
 
-/* Enlace para saltar al contenido (visible solo con teclado) */
 .skip-link {
   position: absolute;
   top: 0.5rem;
   left: 0.5rem;
-  z-index: 50;
+  z-index: 60;
   transform: translateY(-200%);
   border-radius: 6px;
   background-color: var(--color-ink);
-  color: var(--color-paper);
-  padding: 0.5rem 0.75rem;
+  color: white;
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
 }
 
-.skip-link:focus {
-  transform: translateY(0);
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* ------------------------------------------------------------------ movimiento
+   Solo se anima algo que responde a una acción o marca un cambio. Todo vive dentro
+   de prefers-reduced-motion: no-preference, así sin movimiento queda el estado final. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #e4ecef;
 }
 
-/* La foto del login: un acercamiento muy lento y continuo (tipo Ken Burns) */
-@keyframes brota-drift {
-  from {
-    transform: scale(1.04) translate3d(0, 0, 0);
-  }
-  to {
-    transform: scale(1.15) translate3d(-1.4%, -1.8%, 0);
-  }
-}
-
-.photo-drift {
-  transform: scale(1.04);
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.6) 50%, transparent 70%);
+  transform: translateX(-100%);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .photo-drift {
-    animation: brota-drift 32s ease-in-out infinite alternate;
-    will-change: transform;
+  .skeleton::after { animation: brota-shimmer 1.4s ease-in-out infinite; }
+  .toast-in { animation: brota-toast 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .dialog-in { animation: brota-dialog 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .dialog-in::backdrop { animation: brota-fade 0.26s ease both; }
+  .check-draw { stroke-dasharray: 30; stroke-dashoffset: 30; animation: brota-draw 0.5s 0.25s ease-out forwards; }
+  .check-ring { stroke-dasharray: 64; stroke-dashoffset: 64; animation: brota-draw 0.6s ease-out forwards; }
+  .bar-grow { transform-origin: left center; animation: brota-bar 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .pop-in { animation: brota-pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+}
+
+@keyframes brota-shimmer { to { transform: translateX(100%); } }
+@keyframes brota-toast { from { opacity: 0; transform: translateY(0.75rem); } }
+@keyframes brota-dialog { from { opacity: 0; transform: translateY(0.75rem) scale(0.98); } }
+@keyframes brota-fade { from { opacity: 0; } }
+@keyframes brota-draw { to { stroke-dashoffset: 0; } }
+@keyframes brota-bar { from { transform: scaleX(0); } }
+@keyframes brota-pop { from { opacity: 0; transform: scale(0.96); } }
+
+/* ---------------------------------------------------------------------- acceso
+   Celular: la foto arriba y el acceso como una hoja que sube sobre ella.
+   Escritorio: la foto a pantalla completa y el acceso como un panel de cristal. */
+.login-shell {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  overflow: hidden;
+  background: #e6e3f1;
+}
+
+.login-photo,
+.login-photo-shade {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: -1;
+  width: 100%;
+  height: 18rem;
+}
+
+.login-photo {
+  object-fit: cover;
+  object-position: 45% 42%;
+  scale: 1.06;
+  translate: calc(var(--px) * -14px) calc(var(--py) * -10px);
+  transition: translate 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* El velo protege el contraste del texto sin apagar el color de los pétalos. */
+.login-photo-shade {
+  background: linear-gradient(180deg, rgb(27 48 61 / 0.1) 0%, rgb(27 48 61 / 0.35) 55%, rgb(27 48 61 / 0.78) 100%);
+}
+
+.login-story {
+  display: flex;
+  min-height: 16.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.25rem 1.25rem 3rem;
+  color: white;
+}
+
+.login-brand {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 1rem 0.35rem 0.35rem;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.82);
+  color: var(--color-ink);
+}
+
+.login-brand-mark {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: white;
+}
+
+.login-headline {
+  max-width: 34rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 6.5vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1.06;
+}
+
+.login-line { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.login-line-inner { display: block; }
+
+.login-lead,
+.login-capabilities,
+.login-chips { display: none; }
+
+.login-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-top: -1.75rem;
+  border-radius: 1.75rem 1.75rem 0 0;
+  background: var(--color-paper);
+  padding: 2rem 1.25rem max(1rem, env(safe-area-inset-bottom));
+  --enter: 0 1.25rem;
+}
+
+.login-form-content {
+  width: 100%;
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
+.login-footer {
+  display: flex;
+  width: 100%;
+  max-width: 24rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 2.5rem auto 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-mist);
+  color: #3d525c;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .login-photo, .login-photo-shade { height: 22rem; }
+  .login-story { min-height: 20rem; padding: 1.75rem 2rem 3.5rem; }
+  .login-headline { font-size: 3rem; }
+  .login-panel { padding: 2.5rem 2rem 1.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .login-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 30rem;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .login-photo, .login-photo-shade { inset: 0; height: 100%; }
+  .login-photo { object-position: 38% 45%; }
+
+  .login-photo-shade {
+    background:
+      linear-gradient(0deg, rgb(27 48 61 / 0.88) 0%, rgb(27 48 61 / 0.62) 36%, rgb(27 48 61 / 0.1) 68%),
+      linear-gradient(90deg, rgb(27 48 61 / 0.2), rgb(27 48 61 / 0) 60%);
+  }
+
+  .login-story {
+    position: relative;
+    min-height: calc(100svh - 2rem);
+    padding: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  .login-headline { font-size: clamp(3rem, 5.2vw, 5rem); }
+
+  .login-lead {
+    display: block;
+    max-width: 24rem;
+    margin-top: 1.5rem;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  .login-capabilities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(255 255 255 / 0.28);
+    font-size: 0.875rem;
+  }
+
+  .login-capabilities li { display: flex; align-items: center; gap: 0.5rem; }
+
+  .login-panel {
+    margin-top: 0;
+    min-height: calc(100svh - 2rem);
+    border: 1px solid rgb(255 255 255 / 0.75);
+    border-radius: 1.6rem;
+    background: rgb(244 247 248 / 0.92);
+    padding: 2.75rem 2.5rem 1.75rem;
+    box-shadow: 0 30px 80px -30px rgb(27 48 61 / 0.5);
+    -webkit-backdrop-filter: blur(26px) saturate(1.25);
+    backdrop-filter: blur(26px) saturate(1.25);
+    --enter: 1.5rem 0;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .login-panel { background: rgb(244 247 248 / 0.97); }
+  }
+
+  .login-form-content { margin-block: auto; }
+  .login-footer { margin-top: 0; }
+}
+
+/* Fichas de ejemplo: enseñan qué se controla en el panel. Solo con espacio de sobra. */
+@media (min-width: 1200px) {
+  .login-chips { display: block; }
+
+  .login-chip {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem 0.65rem 0.65rem;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 0.8);
+    box-shadow: 0 14px 34px -16px rgb(27 48 61 / 0.55);
+    color: var(--color-ink);
+    translate: calc(var(--px) * var(--depth) * 1px) calc(var(--py) * var(--depth) * 1px);
+    transition: translate 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .login-chip-a { --depth: 16; top: 24%; right: 8%; }
+  .login-chip-b { --depth: 26; top: 38%; right: 22%; }
+
+  .login-chip-note {
+    position: absolute;
+    top: 17%;
+    right: 8%;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: rgb(32 52 61 / 0.62);
+    color: white;
+    font-size: 0.75rem;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .login-dot { position: relative; }
+
+  .login-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    opacity: 0;
   }
 }
 
-/* Capa de marca sobre la foto: oscurece arriba a la izquierda (logo y titular)
-   y abajo (el crédito), y deja respirar el centro. */
-.photo-veil {
-  background-image:
-    radial-gradient(120% 85% at 0% 0%, rgb(14 42 30 / 0.94) 0%, rgb(14 42 30 / 0) 66%),
-    linear-gradient(
-      180deg,
-      rgb(14 42 30 / 0.66) 0%,
-      rgb(14 42 30 / 0.26) 42%,
-      rgb(14 42 30 / 0.8) 100%
-    );
+/* Un solo momento coreografiado al abrir: la foto florece desde el titular, el titular
+   sube línea a línea, y el panel y las fichas llegan después. Luego, solo movimiento
+   que responde al puntero. */
+@media (prefers-reduced-motion: no-preference) {
+  .login-photo { animation: login-bloom 1.5s cubic-bezier(0.22, 0.8, 0.2, 1) both; }
+  .login-photo-shade { animation: brota-fade 1.2s ease both; }
+  .login-brand { animation: brota-fade 0.8s 0.2s ease both; }
+  .login-line-inner { animation: login-rise 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(0.5s + var(--i, 0) * 0.14s); }
+  .login-lead, .login-capabilities { animation: brota-fade 0.9s 1s ease both; }
+  .login-panel { animation: login-panel 0.85s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .login-chip { animation: login-chip 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+  .login-chip-a { animation-delay: 1.15s; }
+  .login-chip-b { animation-delay: 1.35s; }
+  .login-chip-note { animation: brota-fade 0.6s 1.1s ease both; }
+  .login-dot::after { animation: login-ring 1.6s 2s ease-out 3 both; }
 }
 
+@keyframes login-bloom {
+  from { clip-path: circle(0% at 30% 85%); scale: 1.2; }
+  to { clip-path: circle(150% at 30% 85%); scale: 1.06; }
+}
+@keyframes login-rise { from { transform: translateY(105%); } }
+@keyframes login-panel { from { opacity: 0; translate: var(--enter); } }
+@keyframes login-chip { from { opacity: 0; transform: translateY(0.75rem) scale(0.96); } }
+@keyframes login-ring { from { opacity: 0.5; transform: scale(1); } to { opacity: 0; transform: scale(3); } }
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
+  *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
